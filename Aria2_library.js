@@ -89,7 +89,7 @@ var Aria2 = (function (_isGM, _arrFn, _merge, _format, _isFunction) {
                     return element;
                 }
                 
-                this.send = function(data) {
+                this.send = function(data,successHandler,errorHandler) {
                     this.data = data;
                     var that = this;
                     GM_xmlhttpRequest({
@@ -102,18 +102,18 @@ var Aria2 = (function (_isGM, _arrFn, _merge, _format, _isFunction) {
                             for (k in rsp) {
                                 that[k] = rsp[k];
                             }
-                            that.onload;
+                            successHandler && successHandler(rsp);
                         },
                         onerror: function(rsp) {
                             for (k in rsp) {
                                 that[k] = rsp[k];
                             }
+                            errorHandler && errorHandler(rsp);
                         },
                         onreadystatechange: function(rsp) {
                             for (k in rsp) {
                                 that[k] = rsp[k];
                             }
-                            that.onerror;
                         }
                     });
                 };
@@ -142,7 +142,7 @@ var Aria2 = (function (_isGM, _arrFn, _merge, _format, _isFunction) {
 					oReq.setRequestHeader (key, opts.headers[key]);
 				});
 			}
-			return oReq.send(opts.data || null);
+			return oReq.send(opts.data || null,opts.onload,opts.onerror);
         }
 	}
 
