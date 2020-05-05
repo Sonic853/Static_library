@@ -12,14 +12,14 @@ var Aria2 = (function (_isGM, _arrFn, _merge, _format, _isFunction) {
 
 	if ( typeof GM_xmlhttpRequest === 'undefined' ) {
 		var doRequest = function ( opts ) {
-/*
+
 			console.warn ([
 				'Warning: You are now using an simple implementation of GM_xmlhttpRequest',
 				'Cross-domain request are not avilible unless configured correctly @ target server.',
 				'',
 				'Some of its features are not avilible, such as `username` and `password` field.'
 			].join('\n'));
-*/
+
 
 			let oReq = new XMLHttpRequest ();
 			let cbCommon = function (cb) {
@@ -102,6 +102,7 @@ var Aria2 = (function (_isGM, _arrFn, _merge, _format, _isFunction) {
                             for (k in rsp) {
                                 that[k] = rsp[k];
                             }
+                            that.onload;
                         },
                         onerror: function(rsp) {
                             for (k in rsp) {
@@ -112,6 +113,7 @@ var Aria2 = (function (_isGM, _arrFn, _merge, _format, _isFunction) {
                             for (k in rsp) {
                                 that[k] = rsp[k];
                             }
+                            that.onerror;
                         }
                     });
                 };
