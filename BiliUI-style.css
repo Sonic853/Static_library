@@ -8,10 +8,16 @@
     width: 300px;
     height: 400px;
 }
+#Bili8-UI .Close{
+    position: absolute;
+    top: -25px;
+    height: 25px;
+    right: 0;
+}
 #Bili8-UI .MainList{
     position: absolute;
     top: 2px;
-    bottom: 24px;
+    bottom: 64px;
     left: 2px;
     right: 2px;
     border: 1px solid black;
@@ -31,20 +37,42 @@
     bottom: 2px;
     left: 2px;
     right: 2px;
-    height: 20px;
+    height: 60px;
 }
 #Bili8-UI .MainBottom .MBtn{
     position: absolute;
+    display: block;
+    height: 20px;
+    padding: 0;
+    box-sizing:border-box;
+}
+#Bili8-UI .MainBottom .MBIP{
+    top: 0;
+    left: 0;
+    height: 20px;
+    width: 70%;
+}
+#Bili8-UI .MainBottom .MBPort{
+    top: 0;
+    right: 0;
+    height: 20px;
+    width: 30%;
+}
+#Bili8-UI .MainBottom .MBDir{
+    top: 20px;
+    bottom: 20px;
+    right: 0;
+    left: 0;
+    width: 100%;
+    height: 20px;
 }
 #Bili8-UI .MainBottom .MBSendToAria{
     left: 0;
-    top: 0;
     bottom: 0;
-    right: 50%;
+    width: 50%;
 }
 #Bili8-UI .MainBottom .MBBlobDown{
-    left: 50%;
-    top: 0;
     bottom: 0;
     right: 0;
+    width: 50%;
 }
