@@ -1,6 +1,5 @@
 // ==UserScript==
 // @name         Bilibili动态相册相簿图片下载
-// @namespace    Sonic853
 // @version      1.0
 // @description  下载UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
