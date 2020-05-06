@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         Bilibili动态相册相簿图片下载
+// @name         哔哩哔哩Bilibili动态相册相簿图片下载
 // @version      1.0
-// @description  下载UP主相册，然后提交给aria2或打包成zip
+// @description  下载B站UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
@@ -172,6 +172,7 @@
     
             let List_ui = document.createElement("textarea");
             List_ui.classList.add("List");
+            List_ui.readOnly = true;
             List_ui.innerText = "加载中。。。";
     
             let MainBottom_ui = document.createElement("div");
