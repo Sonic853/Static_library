@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩Bilibili动态相册相簿图片下载
-// @version      1.0.4
+// @version      1.0.5
 // @description  下载B站UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -147,6 +147,16 @@
             callback && callback(false)
         });
     };
+    let JSON_parse = function(data){
+        let rdata;
+        try {
+            rdata = JSON.parse(data);
+        } catch (error){
+            Console_Devlog("JSON已解析，直接跳过");
+            rdata = result;
+        }
+        return rdata;
+    }
     let getType = function(file){
         let filename=file;
         let index1=filename.lastIndexOf(".");
@@ -356,13 +366,7 @@
                 uid = this.uid;
             }
             HTTPsend("https://api.vc.bilibili.com/link_draw/v1/doc/upload_count?uid="+uid,"GET","",(result)=>{
-                let rdata;
-                try {
-                    rdata = JSON.parse(result);
-                } catch (error){
-                    Console_Devlog("JSON已解析，直接跳过");
-                    rdata = result;
-                }
+                let rdata = JSON_parse(result);
                 if(rdata.code == 0){
                     if (rdata.data.all_count != 0) {
                         this.set_all_count(rdata.data.all_count);
@@ -388,13 +392,7 @@
             }
             setTimeout(()=>{
                 HTTPsend("https://api.vc.bilibili.com/link_draw/v1/doc/doc_list?uid="+uid+"&page_num=0&page_size="+all_count+"&biz=all","GET","",(result)=>{
-                    let rdata;
-                    try {
-                        rdata = JSON.parse(result);
-                    } catch (error){
-                        Console_Devlog("JSON已解析，直接跳过");
-                        rdata = result;
-                    }
+                    let rdata = JSON_parse(result);
                     if(rdata.code == 0){
                         this.imglist = [];
                         this.index = 0;
@@ -420,13 +418,7 @@
         };
         load_img_detail(doc_id){
             HTTPsend("https://api.vc.bilibili.com/link_draw/v1/doc/detail?doc_id="+doc_id,"GET","",(result)=>{
-                let rdata;
-                try {
-                    rdata = JSON.parse(result);
-                } catch (error){
-                    Console_Devlog("JSON已解析，直接跳过");
-                    rdata = result;
-                }
+                let rdata = JSON_parse(result);
                 if(rdata.code == 0){
                     let cou = 0;
                     rdata.data.item.pictures.forEach(element => {
@@ -495,13 +487,7 @@
                 },5);
             }else{
                 HTTPsend("https://api.bilibili.com/x/space/acc/info?mid="+uFA.uid,"GET","",(result)=>{
-                    let rdata;
-                    try {
-                        rdata = JSON.parse(result);
-                    } catch (error){
-                        Console_Devlog("JSON已解析，直接跳过");
-                        rdata = result;
-                    }
+                    let rdata = JSON_parse(result);
                     if(rdata.code == 0){
                         this.name = rdata.data.name;
                         let name = this.name;
