@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩Bilibili动态相册相簿图片下载
-// @version      1.0.3
+// @version      1.0.4
 // @description  下载B站UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -64,7 +64,7 @@
             d===undefined?(d = this.data):(this.data = d);
             aria2Client = new Aria2({ host:d.IP,port:d.Port });
         }
-    }
+    };
     let bLab8A = new BLab8A();
     let aria2Client = new Aria2({ host:bLab8A.data.IP,port:bLab8A.data.Port });
     let addToAria = function(url, filename, referer, cookie, headers, callback, errorcallback){
@@ -88,7 +88,7 @@
             lists.Set("发送到Aria2失败。");
             errorcallback;
         });
-    }
+    };
 
     if(typeof GM_xmlhttpRequest === 'undefined' && typeof GM_registerMenuCommand === 'undefined' && typeof GM_setValue === 'undefined' && typeof GM_getValue === 'undefined' && typeof GM_addStyle === 'undefined'){
         Console_error("GM is no Ready.");
@@ -143,15 +143,17 @@
     let loadToBlob = function(url, callback) {
         HTTPsend(url,"GET","blob",(result)=>{
             callback && callback(result);
+        },()=>{
+            callback && callback(false)
         });
-    }
+    };
     let getType = function(file){
         let filename=file;
         let index1=filename.lastIndexOf(".");
         let index2=filename.length;
         let type=filename.substring(index1,index2);
         return type;
-    }
+    };
     !DEV_Log&&GM_addStyle(GM_getResourceText("BiliUI-style"));
     let CreactUI = function(){
         if(document.getElementById("Bili8-UI")){
@@ -230,6 +232,7 @@
                     bLab8A.data.dir = DirInput_ui.value;
                     bLab8A.save().set_aria2Client();
                     uFA.indexA = 0;
+                    uFA.HaveDownFail = false;
                     MBBtn(false);
                     lists.BG("running");
                     uFA.send_aria2();
@@ -241,6 +244,7 @@
                 if(!uFA.DownSend){
                     zip = new JSZip();
                     uFA.indexA = 0;
+                    uFA.HaveDownFail = false;
                     MBBtn(false);
                     lists.BG("running");
                     uFA.send_blob();
@@ -252,11 +256,11 @@
                 document.getElementById("Bili8-UI").style.display = "none";
             });
         }
-    }
+    };
     let MBBtn = function(disabled){
         document.getElementById("Bili8-UI").getElementsByClassName("MBSendToAria")[0].disabled = !disabled;
         document.getElementById("Bili8-UI").getElementsByClassName("MBBlobDown")[0].disabled = !disabled;
-    }
+    };
     let CreactMenu = function(){
         GM_registerMenuCommand("下载相册",()=>{
             uFA.index = 0;
@@ -275,7 +279,7 @@
                 }
             },100);
         });
-    }
+    };
     let List = class{
         Get(obj){
             if(obj === undefined){
@@ -320,13 +324,16 @@
                 case "success":
                     color = "#91FFC2";
                     break;
+                case "error":
+                    color = "#F45A8D";
+                    break;
                 default:
                     color = "#FFFFFF";
                     break;
             }
             obj.style.backgroundColor = color;
         }
-    }
+    };
     let UFA = class{
         constructor(uid,all_count){
             this.uid = uid;
@@ -336,6 +343,7 @@
             this.index = 0;
             this.indexA = 0;
             this.DownSend = false;
+            this.HaveDownFail = false;
             if(uid === undefined){
                 this.uid = this.load_uid()
             }
@@ -473,9 +481,16 @@
                 let cou = this.imglist[this.indexA].cou.toString()
                 setTimeout(()=>{
                     loadToBlob(url,(blobFile)=>{
-                        zip.file(doc_id+"_"+cou+getType(url),blobFile,{binary:true});
-                        this.indexA++;
-                        uFA.send_blob();
+                        if (blobFile) {
+                            zip.file(doc_id+"_"+cou+getType(url),blobFile,{binary:true});
+                            this.indexA++;
+                            uFA.send_blob();
+                        }else{
+                            this.HaveDownFail = true;
+                            Console_error("相簿 https://h.bilibili.com/"+doc_id+" 下的第 "+cou+" 张图片下载失败了。。。");
+                            this.indexA++;
+                            uFA.send_blob();
+                        }
                     });
                 },5);
             }else{
@@ -504,8 +519,13 @@
                             a.click();
                             this.DownSend = false;
                             MBBtn(true);
-                            lists.Set("打包 "+zipname+".zip 完成。");
-                            lists.BG("success");
+                            if(!this.HaveDownFail){
+                                lists.Set("打包 "+zipname+".zip 完成。");
+                                lists.BG("success");
+                            }else{
+                                lists.Set("打包 "+zipname+".zip 完成，但有些文件下载失败了，详细请查看控制台orz");
+                                lists.BG("error");
+                            }
                         });
                     }
                 });
