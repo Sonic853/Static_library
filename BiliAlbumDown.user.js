@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩Bilibili动态相册相簿图片下载
-// @version      1.0
+// @version      1.0.1
 // @description  下载B站UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
