@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩Bilibili动态相册相簿图片下载
-// @version      1.0.1
+// @version      1.0.2
 // @description  下载B站UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -146,10 +146,10 @@
         });
     }
     let getType = function(file){
-        var filename=file;
-        var index1=filename.lastIndexOf(".");
-        var index2=filename.length;
-        var type=filename.substring(index1,index2);
+        let filename=file;
+        let index1=filename.lastIndexOf(".");
+        let index2=filename.length;
+        let type=filename.substring(index1,index2);
         return type;
     }
     !DEV_Log&&GM_addStyle(GM_getResourceText("BiliUI-style"));
