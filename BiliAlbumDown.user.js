@@ -188,15 +188,15 @@
             let PanelClose_ui = document.createElement("button");
             PanelClose_ui.classList.add("Close");
             PanelClose_ui.innerText = "关闭";
-
+    
             let MainList_ui = document.createElement("div");
             MainList_ui.classList.add("MainList");
-
+    
             let List_ui = document.createElement("textarea");
             List_ui.classList.add("List");
             List_ui.readOnly = true;
             List_ui.innerText = "加载中。。。";
-
+    
             let MainBottom_ui = document.createElement("div");
             MainBottom_ui.classList.add("MainBottom");
 
@@ -233,7 +233,7 @@
             BlobDown_ui.innerText = "浏览器打包下载";
             BlobDown_ui.title = "将会消耗大量的内存！";
             BlobDown_ui.disabled = true;
-
+    
             Panel_ui.appendChild(PanelClose_ui);
             MainList_ui.appendChild(List_ui);
             Panel_ui.appendChild(MainList_ui);
