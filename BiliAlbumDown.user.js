@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩Bilibili动态相册相簿图片视频封面下载
-// @version      1.1.0
+// @version      1.1.1
 // @description  下载B站UP主相册，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -183,15 +183,15 @@
             let PanelClose_ui = document.createElement("button");
             PanelClose_ui.classList.add("Close");
             PanelClose_ui.innerText = "关闭";
-    
+
             let MainList_ui = document.createElement("div");
             MainList_ui.classList.add("MainList");
-    
+
             let List_ui = document.createElement("textarea");
             List_ui.classList.add("List");
             List_ui.readOnly = true;
             List_ui.innerText = "加载中。。。";
-    
+
             let MainBottom_ui = document.createElement("div");
             MainBottom_ui.classList.add("MainBottom");
 
@@ -228,7 +228,7 @@
             BlobDown_ui.innerText = "浏览器打包下载";
             BlobDown_ui.title = "将会消耗大量的内存！";
             BlobDown_ui.disabled = true;
-    
+
             Panel_ui.appendChild(PanelClose_ui);
             MainList_ui.appendChild(List_ui);
             Panel_ui.appendChild(MainList_ui);
@@ -273,7 +273,7 @@
         }
     };
     let CreactMenu = function(){
-        let Creact = function(Mode){
+        let Creact_G = function(Mode){
             uFA.Mode = Mode;
             uFA.index = 0;
             CreactUI();
@@ -291,8 +291,8 @@
                 }
             },100);
         }
-        GM_registerMenuCommand("下载相册",()=>{Creact(0)});
-        GM_registerMenuCommand("下载视频封面",()=>{Creact(1)});
+        GM_registerMenuCommand("下载相册",()=>{Creact_G(0)});
+        GM_registerMenuCommand("下载视频封面",()=>{Creact_G(1)});
     };
     let List = class{
         Get(obj){
@@ -459,6 +459,7 @@
                                 }else{
                                     this.add_img_video(element.pic,element.aid);
                                 }
+                                this.index++;
                             });
                             setTimeout(()=>{Console_log("加载完成，有"+this.imglist.length+"个图片。");},1000);
                         }
