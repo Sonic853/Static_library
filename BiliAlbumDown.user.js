@@ -1,7 +1,7 @@
 // ==UserScript==
-// @name         哔哩哔哩Bilibili动态相册相簿图片视频封面下载
-// @version      1.1.1
-// @description  下载B站UP主相册，然后提交给aria2或打包成zip
+// @name         哔哩哔哩图片打包下载（支持相簿
+// @version      1.1.3
+// @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
@@ -166,6 +166,11 @@
         let type=filename.substring(index1,index2);
         return type;
     };
+    let getFileName = function(file) {
+        let str = file;
+        str = str.substring(str.lastIndexOf("/") + 1);
+        return str;
+    }
     let MBBtn = function(disabled){
         document.getElementById("Bili8-UI").getElementsByClassName("MBSendToAria")[0].disabled = !disabled;
         document.getElementById("Bili8-UI").getElementsByClassName("MBBlobDown")[0].disabled = !disabled;
@@ -276,11 +281,12 @@
         let Creact_G = function(Mode){
             uFA.Mode = Mode;
             uFA.index = 0;
+            uFA.all_count = 0;
             CreactUI();
             uFA.load_all_count();
             let t2 = setInterval(()=>{
                 let index = uFA.index;
-                if(index++>=uFA.all_count){
+                if(index++>=uFA.all_count&&uFA.all_count!=0){
                     let obj = document.getElementById("Bili8-UI").getElementsByClassName("List")[0];
                     lists.Clear(obj);
                     uFA.imglist.forEach(element => {
@@ -293,7 +299,28 @@
         }
         GM_registerMenuCommand("下载相册",()=>{Creact_G(0)});
         GM_registerMenuCommand("下载视频封面",()=>{Creact_G(1)});
+        GM_registerMenuCommand("下载头像、头图、直播封面、直播壁纸",()=>{Creact_G(2)});
     };
+    let BG_Default = [
+        "1780c98271ead667b2807127ef807ceb4809c599.png",
+        "e7f98439ab7d081c9ab067d248e1780bd8a72ffc.jpg",
+        "f49642b3683a08e3190f29d5a095386451f8952c.jpg",
+        "cd52d4ac1d336c940cc4958120170f7928d9e606.png",
+        "70ce28bcbcb4b7d0b4f644b6f082d63a702653c1.png",
+        "3ab888c1d149e864ab44802dea8c1443e940fa0d.png",
+        "6e799ff2de2de55d27796707a283068d66cdf3f4.png",
+        "24d0815514951bb108fbb360b04a969441079315.png",
+        "0ad193946df21899c6cc69fc36484a7f96e22f75.png",
+        "265ecddc52d74e624dc38cf0cff13317085aedf7.png",
+        "6a1198e25f8764bd30d53411dac9fdf840bc3265.png",
+        "9ccc0447aebf0656809b339b41aa5b3705f27c47.png",
+        "8cd85a382756ab938df23a856017abccd187188e.png",
+        "e22f5b8e06ea3ee4de9e4da702ce8ef9a2958f5a.png",
+        "c919a9818172a8297f8b0597722f96504a1e1d88.png",
+        "87277d30cd19edcec9db466a9a3e556aeb0bc0ed.png",
+        "44873d3568bdcb3d850d234e02a19602972450f1.png",
+        "cb1c3ef50e22b6096fde67febe863494caefebad.png"
+    ];
     let List = class{
         Get(obj){
             if(obj === undefined){
@@ -383,6 +410,8 @@
                             Console_log("空的");
                             lists.Set("空的");
                         }
+                    }else{
+                        Console_error(result);
                     }
                 });
             }else if(Mode == 1){
@@ -395,6 +424,63 @@
                             Console_log("空的");
                             lists.Set("空的");
                         }
+                    }else{
+                        Console_error(result);
+                    }
+                });
+            }else if(Mode == 2){
+                this.index = 0;
+                this.imglist = [];
+                HTTPsend("https://api.bilibili.com/x/space/acc/info?mid="+this.uid,"GET","",(result)=>{
+                    let rdata = JSON_parse(result);
+                    if(rdata.code == 0){
+                        this.name = rdata.data.name;
+                        let face = rdata.data.face;
+                        let bg = rdata.data.top_photo;
+                        // let time = Math.round(new Date().getTime()/1000).toString();
+                        HTTPsend("https://api.live.bilibili.com/room/v1/Room/getRoomInfoOld?mid="+this.uid,"GET","",(result2)=>{
+                            let rdata2 = JSON_parse(result2);
+                            if(rdata2.code == 0){
+                                if (rdata2.data.roomid != 0) {
+                                    HTTPsend("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByRoom?room_id="+rdata2.data.roomid,"GET","",(result3)=>{
+                                        let rdata3 = JSON_parse(result3);
+                                        if(rdata3.code == 0){
+                                            let cover = rdata3.data.room_info.cover;
+                                            let background = rdata3.data.room_info.background;
+                                            this.all_count = 1;
+                                            this.add_img_FBLB(face,"face_"+getFileName(face));
+                                            if (BG_Default.indexOf(getFileName(bg)) == -1) {
+                                                this.all_count++;
+                                                this.add_img_FBLB(bg,"bg_"+getFileName(bg));
+                                            }
+                                            if (cover != "") {
+                                                this.all_count++;
+                                                this.add_img_FBLB(cover,"livecover_"+getFileName(cover));
+                                            }
+                                            if (background != ""&&!(background.startsWith("http://static.hdslb.com/live-static/images/bg/")||background.startsWith("https://static.hdslb.com/live-static/images/bg/"))) {
+                                                this.all_count++;
+                                                this.add_img_FBLB(background,"livebg_"+getFileName(background));
+                                            }
+                                            this.index = this.all_count;
+                                        }else{
+                                            Console_error(result3);
+                                        }
+                                    });
+                                }else{
+                                    this.all_count = 1;
+                                    this.add_img_FBLB(face,"face_"+getFileName(face));
+                                    if (BG_Default.indexOf(getFileName(bg)) == -1) {
+                                        this.all_count++;
+                                        this.add_img_FBLB(bg,"bg_"+getFileName(bg));
+                                    }
+                                    this.index = this.all_count;
+                                }
+                            }else{
+                                Console_error(result2);
+                            }
+                        });
+                    }else{
+                        Console_error(result);
                     }
                 });
             }
@@ -441,29 +527,39 @@
                                 }
                             });
                             setTimeout(()=>{Console_log("加载完成，有"+this.imglist.length+"个图片。");},1000);
+                        }else{
+                            Console_error(result);
                         }
                     });
                 });
             }else if(Mode == 1){
                 setTimeout(()=>{
-                    HTTPsend("https://api.bilibili.com/x/space/arc/search?mid="+uid+"&ps="+all_count+"&tid=0&pn=1&keyword=&order=pubdate","GET","",(result)=>{
-                        let rdata = JSON_parse(result);
-                        if(rdata.code == 0){
-                            this.imglist = [];
-                            this.index = 0;
-                            rdata.data.list.vlist.forEach(element => {
-                                if (element.pic.startsWith("//")) {
-                                    this.add_img_video("https:"+element.pic,element.aid);
-                                }else if (element.pic.startsWith("http:")||element.pic.startsWith("https:")) {
-                                    this.add_img_video(element.pic,element.aid);
-                                }else{
-                                    this.add_img_video(element.pic,element.aid);
-                                }
-                                this.index++;
-                            });
-                            setTimeout(()=>{Console_log("加载完成，有"+this.imglist.length+"个图片。");},1000);
-                        }
-                    });
+                    let z = 1;
+                    if (all_count>30) {
+                        z = Math.ceil(all_count/30);
+                    }
+                    this.imglist = [];
+                    this.index = 0;
+                    for (let i = 1; i <= z; i++) {
+                        HTTPsend("https://api.bilibili.com/x/space/arc/search?mid="+uid+"&ps=30&tid=0&pn="+i+"&keyword=&order=pubdate","GET","",(result)=>{
+                            let rdata = JSON_parse(result);
+                            if(rdata.code == 0){
+                                rdata.data.list.vlist.forEach(element => {
+                                    if (element.pic.startsWith("//")) {
+                                        this.add_img_video("https:"+element.pic,element.aid);
+                                    }else if (element.pic.startsWith("http:")||element.pic.startsWith("https:")) {
+                                        this.add_img_video(element.pic,element.aid);
+                                    }else{
+                                        this.add_img_video(element.pic,element.aid);
+                                    }
+                                    this.index++;
+                                });
+                            }else{
+                                Console_error(result);
+                            }
+                            i==z&&setTimeout(()=>{Console_log("加载完成，有"+all_count+"个图片。");},1000);
+                        });
+                    }
                 });
             }
         };
@@ -477,6 +573,8 @@
                         cou++;
                     });
                     this.index++;
+                }else{
+                    Console_error(result);
                 }
             });
 
@@ -486,6 +584,9 @@
         };
         add_img_video(url,aid){
             this.imglist.push({url:url,aid:aid});
+        }
+        add_img_FBLB(url,name){
+            this.imglist.push({url:url,name:name});
         }
         send_aria2(){
             this.DownSend = true;
@@ -514,6 +615,19 @@
                     let aid = this.imglist[this.indexA].aid.toString();
                     setTimeout(()=>{
                         addToAria([url],"av"+aid+getType(url),"https://space.bilibili.com/"+this.uid+"/video",true,[],()=>{
+                            // bug: 此处没法执行callback
+                        },()=>{
+                            Console_error("发送到Aria2失败了，请检查相关设置吧。。。。");
+                            lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。");
+                        });
+                        uFA.indexA++;
+                        uFA.send_aria2();
+                    },5);
+                }else if(this.Mode == 2){
+                    let url = this.imglist[this.indexA].url;
+                    let name = this.imglist[this.indexA].name;
+                    setTimeout(()=>{
+                        addToAria([url],name,"https://space.bilibili.com/"+this.uid+"/video",true,[],()=>{
                             // bug: 此处没法执行callback
                         },()=>{
                             Console_error("发送到Aria2失败了，请检查相关设置吧。。。。");
@@ -573,6 +687,23 @@
                             }
                         });
                     },5);
+                } else if(this.Mode == 2){
+                    let url = this.imglist[this.indexA].url;
+                    let name = this.imglist[this.indexA].name;
+                    setTimeout(()=>{
+                        loadToBlob(url,(blobFile)=>{
+                            if (blobFile) {
+                                zip.file(name,blobFile,{binary:true});
+                                this.indexA++;
+                                uFA.send_blob();
+                            }else{
+                                this.HaveDownFail = true;
+                                Console_error("视频 https://www.bilibili.com/video/av"+aid+" 的封面下载失败了。。。");
+                                this.indexA++;
+                                uFA.send_blob();
+                            }
+                        });
+                    },5);
                 }
             }else{
                 HTTPsend("https://api.bilibili.com/x/space/acc/info?mid="+uFA.uid,"GET","",(result)=>{
@@ -587,6 +718,8 @@
                                 zipname += "_相册";
                             }else if (this.Mode == 1) {
                                 zipname += "_视频封面";
+                            }else if (this.Mode == 2){
+                                zipname += "_头图及壁纸";
                             }
                             Console_log("正在打包成 "+zipname+".zip 中");
                             lists.Set("正在打包成 "+zipname+".zip 中");
@@ -607,6 +740,8 @@
                                 lists.BG("error");
                             }
                         });
+                    }else{
+                        Console_error(result);
                     }
                 });
             }
