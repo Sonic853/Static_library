@@ -291,8 +291,8 @@
                 }
             },100);
         }
-        GM_registerMenuCommand("下载相册",Creact(0));
-        GM_registerMenuCommand("下载视频封面",Creact(1));
+        GM_registerMenuCommand("下载相册",()=>{Creact(0)});
+        GM_registerMenuCommand("下载视频封面",()=>{Creact(1)});
     };
     let List = class{
         Get(obj){
@@ -453,11 +453,11 @@
                             this.index = 0;
                             rdata.data.list.vlist.forEach(element => {
                                 if (element.pic.startsWith("//")) {
-                                    add_img_video("https:"+element.pic,element.aid);
+                                    this.add_img_video("https:"+element.pic,element.aid);
                                 }else if (element.pic.startsWith("http:")||element.pic.startsWith("https:")) {
-                                    add_img_video(element.pic,element.aid);
+                                    this.add_img_video(element.pic,element.aid);
                                 }else{
-                                    add_img_video(element.pic,element.aid);
+                                    this.add_img_video(element.pic,element.aid);
                                 }
                             });
                             setTimeout(()=>{Console_log("加载完成，有"+this.imglist.length+"个图片。");},1000);
