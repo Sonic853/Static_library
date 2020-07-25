@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿
-// @version      1.1.3
+// @version      1.1.4
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
-// @require      https://cdn.jsdelivr.net/gh/Stuk/jszip@3.3.0/dist/jszip.min.js
+// @require      https://cdn.jsdelivr.net/gh/Stuk/jszip@3.5.0/dist/jszip.min.js
 // @require      https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js
 // @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit-use-gm-xmlhttprequest/code/Aria2%20RPC%20Edit%20(use%20GM_xmlhttpRequest).js?version=801673
 // @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
@@ -92,6 +92,7 @@
         },()=>{
             Console_error("发送到Aria2失败。");
             lists.Set("发送到Aria2失败。");
+            lists.BG("error");
             errorcallback;
         });
     };
