@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿
-// @version      1.1.4
+// @version      1.1.5
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -189,15 +189,15 @@
             let PanelClose_ui = document.createElement("button");
             PanelClose_ui.classList.add("Close");
             PanelClose_ui.innerText = "关闭";
-    
+
             let MainList_ui = document.createElement("div");
             MainList_ui.classList.add("MainList");
-    
+
             let List_ui = document.createElement("textarea");
             List_ui.classList.add("List");
             List_ui.readOnly = true;
             List_ui.innerText = "加载中。。。";
-    
+
             let MainBottom_ui = document.createElement("div");
             MainBottom_ui.classList.add("MainBottom");
 
@@ -234,7 +234,7 @@
             BlobDown_ui.innerText = "浏览器打包下载";
             BlobDown_ui.title = "将会消耗大量的内存！";
             BlobDown_ui.disabled = true;
-    
+
             Panel_ui.appendChild(PanelClose_ui);
             MainList_ui.appendChild(List_ui);
             Panel_ui.appendChild(MainList_ui);
@@ -301,6 +301,7 @@
         GM_registerMenuCommand("下载相册",()=>{Creact_G(0)});
         GM_registerMenuCommand("下载视频封面",()=>{Creact_G(1)});
         GM_registerMenuCommand("下载头像、头图、直播封面、直播壁纸",()=>{Creact_G(2)});
+        GM_registerMenuCommand("下载头衔",()=>{Creact_G(3)});
     };
     let BG_Default = [
         "1780c98271ead667b2807127ef807ceb4809c599.png",
@@ -484,6 +485,20 @@
                         Console_error(result);
                     }
                 });
+            }else if(Mode == 3){
+                HTTPsend("https://api.live.bilibili.com/rc/v1/Title/webTitles","GET","",(result)=>{
+                    let rdata = JSON_parse(result);
+                    if(rdata.code == 0){
+                        if (rdata.data.length != 0) {
+                            this.set_all_count(rdata.data,Mode);
+                        }else{
+                            Console_log("空的");
+                            lists.Set("空的");
+                        }
+                    }else{
+                        Console_error(result);
+                    }
+                });
             }
         };
         set_all_count(all_count,Mode){
@@ -561,6 +576,14 @@
                             i==z&&setTimeout(()=>{Console_log("加载完成，有"+all_count+"个图片。");},1000);
                         });
                     }
+                });
+            }else if(Mode == 3){
+                this.imglist = [];
+                this.index = 0;
+                this.all_count = all_count.length
+                all_count.forEach(e => {
+                    this.add_img_FBLB(e.web_pic_url,e.identification+".png")
+                    this.index++;
                 });
             }
         };
@@ -688,7 +711,7 @@
                             }
                         });
                     },5);
-                } else if(this.Mode == 2){
+                } else if(this.Mode == 2||this.Mode == 3){
                     let url = this.imglist[this.indexA].url;
                     let name = this.imglist[this.indexA].name;
                     setTimeout(()=>{
@@ -699,7 +722,7 @@
                                 uFA.send_blob();
                             }else{
                                 this.HaveDownFail = true;
-                                Console_error("视频 https://www.bilibili.com/video/av"+aid+" 的封面下载失败了。。。");
+                                Console_error("图片 "+url+" 下载失败了。。。");
                                 this.indexA++;
                                 uFA.send_blob();
                             }
@@ -721,6 +744,8 @@
                                 zipname += "_视频封面";
                             }else if (this.Mode == 2){
                                 zipname += "_头图及壁纸";
+                            }else if (this.Mode == 3){
+                                zipname += "_头衔";
                             }
                             Console_log("正在打包成 "+zipname+".zip 中");
                             lists.Set("正在打包成 "+zipname+".zip 中");
