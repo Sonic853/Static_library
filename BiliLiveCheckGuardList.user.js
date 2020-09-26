@@ -489,7 +489,7 @@
 
     CreactMenu();
     gLC.check_room()&&CreactUI();
-    // document.getElementById("Bili8-UI").style.display = "none";
+    document.getElementById("Bili8-UI").style.display = "none";
 
     gLC.check_room()&&bLab8A.data.auto&&gLC.first_check();
     if (gLC.runing) {
