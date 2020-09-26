@@ -221,7 +221,7 @@
                         });
                     });
                     if (rdata.data.info.page>page) {
-                        this.check();
+                        setTimeout(() => {this.check();}, 300);
                     }else{
                         // this.cdate = dateFormat("YYYY-mm-dd",new Date());
                         if (this.first_use) {
