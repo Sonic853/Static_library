@@ -5,7 +5,7 @@
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://live.bilibili.com/*
-// @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
+// @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-Guard-style.min.css?t=20200506001
 // @run-at       document-end
 // @license      MIT License
 // @grant        GM_addStyle
@@ -35,6 +35,25 @@
         let d = new Date().toLocaleTimeString();
         console.error("["+NAME+"]["+d+"]: "+text);
     };
+    let dateFormat = function (fmt, date) {
+        let ret;
+        const opt = {
+            "Y+": date.getFullYear().toString(),        // 年
+            "m+": (date.getMonth() + 1).toString(),     // 月
+            "d+": date.getDate().toString(),            // 日
+            "H+": date.getHours().toString(),           // 时
+            "M+": date.getMinutes().toString(),         // 分
+            "S+": date.getSeconds().toString()          // 秒
+            // 有其他格式化字符需求可以继续添加，必须转化成字符串
+        };
+        for (let k in opt) {
+            ret = new RegExp("(" + k + ")").exec(fmt);
+            if (ret) {
+                fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
+            };
+        };
+        return fmt;
+    }
 
     if(typeof GM_xmlhttpRequest === 'undefined' && typeof GM_registerMenuCommand === 'undefined' && typeof GM_setValue === 'undefined' && typeof GM_getValue === 'undefined' && typeof GM_addStyle === 'undefined'){
         Console_error("GM is no Ready.");
@@ -70,6 +89,7 @@
 
     !DEV_Log&&GM_addStyle(GM_getResourceText("BiliUI-style"));
     let HTTPsend = function(url, method, Type, successHandler, errorHandler) {
+        Console_Devlog(url);
         if (typeof GM_xmlhttpRequest != 'undefined') {
             GM_xmlhttpRequest({
                 method:method,
@@ -137,7 +157,7 @@
         check_room(){
             if (window.location.pathname != "/"+bLab8A.data.Roomid) {
                 if (window.location.pathname != "/blanc/"+bLab8A.data.Roomid) {
-                    Console_log("检测到当前直播间并非在执行范围内。");
+                    Console_log("检测到当前直播间并非在执行范围内："+window.location.pathname);
                     return false;
                 }
                 return true;
@@ -169,8 +189,10 @@
             this.cdate = dateFormat("YYYY-mm-dd",new Date());
             if(bLab8A.data.Check_date != this.cdate){
                 (bLab8A.data.HL.indexOf(bLab8A.data.Check_date) == -1)&&bLab8A.data.HL.push(bLab8A.data.Check_date);
-                bLab8A.data.History[bLab8A.data.Check_date].New = bLab8A.data.New;
-                bLab8A.data.History[bLab8A.data.Check_date].Lost = bLab8A.data.Lost;
+                bLab8A.data.History[bLab8A.data.Check_date] = {New:[],Lost:[]}
+                bLab8A.data.History[bLab8A.data.Check_date]["New"] = bLab8A.data.New;
+                bLab8A.data.History[bLab8A.data.Check_date]["Lost"] = bLab8A.data.Lost;
+                // console.log(bLab8A.data);
                 bLab8A.save();
             }
             this.List = new Array();
@@ -182,7 +204,7 @@
         check(page){
             // 获得当前的舰长列表
             if(page === undefined){
-                page = 1+this.now;
+                this.now = page = 1+this.now;
             }else{
                 this.now = page;
             }
@@ -255,25 +277,6 @@
         }
     }
     let gLC = new GLC();
-    let dateFormat = function (fmt, date) {
-        let ret;
-        const opt = {
-            "Y+": date.getFullYear().toString(),        // 年
-            "m+": (date.getMonth() + 1).toString(),     // 月
-            "d+": date.getDate().toString(),            // 日
-            "H+": date.getHours().toString(),           // 时
-            "M+": date.getMinutes().toString(),         // 分
-            "S+": date.getSeconds().toString()          // 秒
-            // 有其他格式化字符需求可以继续添加，必须转化成字符串
-        };
-        for (let k in opt) {
-            ret = new RegExp("(" + k + ")").exec(fmt);
-            if (ret) {
-                fmt = fmt.replace(ret[1], (ret[1].length == 1) ? (opt[k]) : (opt[k].padStart(ret[1].length, "0")))
-            };
-        };
-        return fmt;
-    }
     let CreactUI = function(){
         if(document.getElementById("Bili8-UI")){
             // lists.Set("加载中。。。");
@@ -321,7 +324,7 @@
 
             let AutoText_ui = document.createElement("div");
             AutoText_ui.innerHTML = "自动查询";
-            AutoInput_ui.classList.add("MBtn","MBTAuto");
+            AutoText_ui.classList.add("MBtn","MBTAuto");
 
             let NewText_ui = document.createElement("div");
             NewText_ui.innerHTML = "新增";
@@ -338,7 +341,7 @@
             let LoadList_ui = document.createElement("button");
             LoadList_ui.classList.add("MBtn","LoadList");
             LoadList_ui.innerText = "开始查询";
-            LoadList_ui.disabled = true;
+            // LoadList_ui.disabled = true;
 
             Panel_ui.appendChild(PanelClose_ui);
             Panel_ui.appendChild(StateText_ui);
@@ -485,7 +488,7 @@
     };
 
     CreactMenu();
-    CreactUI();
+    gLC.check_room()&&CreactUI();
     // document.getElementById("Bili8-UI").style.display = "none";
 
     gLC.check_room()&&bLab8A.data.auto&&gLC.first_check();
