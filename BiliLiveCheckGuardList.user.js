@@ -327,9 +327,9 @@
             NewText_ui.innerHTML = "新增";
             NewText_ui.classList.add("MBtn","MBTNew");
 
-            let NewText_ui = document.createElement("div");
-            NewText_ui.innerHTML = "失去";
-            NewText_ui.classList.add("MBtn","MBTLost");
+            let LostText_ui = document.createElement("div");
+            LostText_ui.innerHTML = "失去";
+            LostText_ui.classList.add("MBtn","MBTLost");
 
             let SaveSetting_ui = document.createElement("button");
             SaveSetting_ui.classList.add("MBtn","MBSaveSetting");
@@ -348,6 +348,8 @@
             MainBottom_ui.appendChild(RIDInput_ui);
             MainBottom_ui.appendChild(AutoText_ui);
             MainBottom_ui.appendChild(AutoInput_ui);
+            MainBottom_ui.appendChild(NewText_ui);
+            MainBottom_ui.appendChild(LostText_ui);
             MainBottom_ui.appendChild(SaveSetting_ui);
             MainBottom_ui.appendChild(LoadList_ui);
             Panel_ui.appendChild(MainBottom_ui);
