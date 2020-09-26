@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿
-// @version      1.1.5
+// @version      1.1.6
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -99,6 +99,7 @@
 
     !DEV_Log&&GM_addStyle(GM_getResourceText("BiliUI-style"));
     let HTTPsend = function(url, method, Type, successHandler, errorHandler) {
+        Console_Devlog(url);
         if (typeof GM_xmlhttpRequest != 'undefined') {
             GM_xmlhttpRequest({
                 method:method,
@@ -417,11 +418,11 @@
                     }
                 });
             }else if(Mode == 1){
-                HTTPsend("https://api.bilibili.com/x/space/navnum?mid="+uid,"GET","",(result)=>{
+                HTTPsend("https://api.bilibili.com/x/space/arc/search?mid="+uid+"&ps=30&tid=0&pn=1&keyword=&order=pubdate","GET","",(result)=>{
                     let rdata = JSON_parse(result);
                     if(rdata.code == 0){
                         if (rdata.data.video != 0) {
-                            this.set_all_count(rdata.data.video,Mode);
+                            this.set_all_count(rdata.data.page.count,Mode);
                         }else{
                             Console_log("空的");
                             lists.Set("空的");
