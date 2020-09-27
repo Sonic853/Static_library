@@ -450,7 +450,7 @@
         let List_ui = document.getElementById("Bili8-UI").getElementsByClassName("ListNew")[0];
         if(bLab8A.data.New.length > 0) {
             bLab8A.data.New.forEach(e => {
-                lists.Add(e.username,List_ui);
+                lists.Add(e.username+"："+e.uid,List_ui);
             });
         }
         let List_ui2 = document.getElementById("Bili8-UI").getElementsByClassName("ListLost")[0];
