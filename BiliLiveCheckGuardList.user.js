@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩直播间舰长列表新增减少检测
-// @version      1.0.0
+// @version      1.0.1
 // @description  看看是哪个小宝贝过期了2333
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -448,12 +448,14 @@
 
     let load_list = function(){
         let List_ui = document.getElementById("Bili8-UI").getElementsByClassName("ListNew")[0];
+        lists.Clear(List_ui);
         if(bLab8A.data.New.length > 0) {
             bLab8A.data.New.forEach(e => {
                 lists.Add(e.username+"："+e.uid,List_ui);
             });
         }
         let List_ui2 = document.getElementById("Bili8-UI").getElementsByClassName("ListLost")[0];
+        lists.Clear(List_ui2);
         if(bLab8A.data.Lost.length > 0) {
             bLab8A.data.Lost.forEach(e => {
                 lists.Add(e.username+"："+e.uid,List_ui2);
