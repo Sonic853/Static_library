@@ -1,5 +1,5 @@
 // ==UserScript==
-// @name         哔哩哔哩舰长检测
+// @name         哔哩哔哩直播间舰长列表新增减少检测
 // @version      1.0.0
 // @description  看看是哪个小宝贝过期了2333
 // @author       Sonic853
@@ -456,7 +456,7 @@
         let List_ui2 = document.getElementById("Bili8-UI").getElementsByClassName("ListLost")[0];
         if(bLab8A.data.Lost.length > 0) {
             bLab8A.data.Lost.forEach(e => {
-                lists.Add(e.username,List_ui2);
+                lists.Add(e.username+"："+e.uid,List_ui2);
             });
         }
     }
