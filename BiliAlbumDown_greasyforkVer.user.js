@@ -600,9 +600,7 @@
                     for (let i = 1; i <= z; i++) {
                         setTimeout(()=>{
                             HTTPsend("https://api.bilibili.com/x/space/arc/search?mid="+uid+"&ps=30&tid=0&pn="+i+"&keyword=&order=pubdate","GET","",(result)=>{
-                                let p = i;
-                                p++;
-                                lists.Set("正在分析第"+p.toString()+"页");
+                                lists.Set("正在分析第"+i.toString()+"页");
                                 let rdata = JSON_parse(result);
                                 if(rdata.code == 0){
                                     rdata.data.list.vlist.forEach(element => {
@@ -678,9 +676,7 @@
                     for (let i = 1; i <= z; i++) {
                         setTimeout(()=>{
                             HTTPsend("https://api.bilibili.com/x/space/article?mid="+this.uid+"&pn="+i+"&ps=12&sort=publish_time","GET","",(result)=>{
-                                let p = i;
-                                p++;
-                                lists.Set("正在分析第"+p.toString()+"页");
+                                lists.Set("正在分析第"+i.toString()+"页");
                                 let rdata = JSON_parse(result);
                                 if(rdata.code == 0){
                                     rdata.data.articles.forEach(element => {
