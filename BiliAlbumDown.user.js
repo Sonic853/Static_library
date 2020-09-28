@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.2.0
+// @version      1.2.1
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -600,7 +600,9 @@
                     for (let i = 1; i <= z; i++) {
                         setTimeout(()=>{
                             HTTPsend("https://api.bilibili.com/x/space/arc/search?mid="+uid+"&ps=30&tid=0&pn="+i+"&keyword=&order=pubdate","GET","",(result)=>{
-                                lists.Set("正在分析第"+i+"页");
+                                let p = i;
+                                p++;
+                                lists.Set("正在分析第"+p.toString()+"页");
                                 let rdata = JSON_parse(result);
                                 if(rdata.code == 0){
                                     rdata.data.list.vlist.forEach(element => {
@@ -649,7 +651,9 @@
                             setTimeout(()=>{
                                 const e = cvlist[i];
                                 HTTPsend(e.url,"GET","",(result)=>{
-                                    lists.Set("正在分析第"+i.toString()+"个专栏里的图片");
+                                    let p = i;
+                                    p++;
+                                    lists.Set("正在分析第"+p.toString()+"个专栏里的图片");
                                     let cou = 0;
                                     if (e.banner!="") {
                                         this.add_img(e.banner,e.id,cou);
@@ -674,7 +678,9 @@
                     for (let i = 1; i <= z; i++) {
                         setTimeout(()=>{
                             HTTPsend("https://api.bilibili.com/x/space/article?mid="+this.uid+"&pn="+i+"&ps=12&sort=publish_time","GET","",(result)=>{
-                                lists.Set("正在分析第"+i+"页");
+                                let p = i;
+                                p++;
+                                lists.Set("正在分析第"+p.toString()+"页");
                                 let rdata = JSON_parse(result);
                                 if(rdata.code == 0){
                                     rdata.data.articles.forEach(element => {
