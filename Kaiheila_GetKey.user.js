@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         开黑啦Key获取
 // @namespace    https://853lab.com/
-// @version      0.1
+// @version      0.2
 // @description  获取key用于开发用途。
 // @author       Sonic853
 // @match        https://kaiheila.cn/app/*
+// @match        https://www.kaiheila.cn/app/*
 // @grant        GM_registerMenuCommand
 // ==/UserScript==
 
