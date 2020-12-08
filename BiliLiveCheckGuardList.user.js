@@ -1,11 +1,11 @@
 // ==UserScript==
 // @name         哔哩哔哩直播间舰长列表新增减少检测
-// @version      1.0.1
+// @version      1.0.2
 // @description  看看是哪个小宝贝过期了2333
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://live.bilibili.com/*
-// @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-Guard-style.min.css?t=20200506001
+// @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-Guard-style.min.css?t=20201208001
 // @run-at       document-end
 // @license      MIT License
 // @grant        GM_addStyle
@@ -17,23 +17,23 @@
 // @grant        unsafeWindow
 // ==/UserScript==
 // https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topList?roomid=15667&page=1&ruid=1968333&page_size=29
-(function() {
+(function () {
     'use strict';
 
     const DEV_Log = Boolean(localStorage.getItem("Dev-853"));
     const localItem = "Lab8A";
     const NAME = "舰长检测";
-    const Console_log = function(text){
+    const Console_log = function (text) {
         let d = new Date().toLocaleTimeString();
-        console.log("["+NAME+"]["+d+"]: "+text);
+        console.log("[" + NAME + "][" + d + "]: " + text);
     };
-    const Console_Devlog = function(text){
+    const Console_Devlog = function (text) {
         let d = new Date().toLocaleTimeString();
-        DEV_Log&&(console.log("["+NAME+"]["+d+"]: "+text));
+        DEV_Log && (console.log("[" + NAME + "][" + d + "]: " + text));
     };
-    const Console_error = function(text){
+    const Console_error = function (text) {
         let d = new Date().toLocaleTimeString();
-        console.error("["+NAME+"]["+d+"]: "+text);
+        console.error("[" + NAME + "][" + d + "]: " + text);
     };
     let dateFormat = function (fmt, date) {
         let ret;
@@ -55,31 +55,31 @@
         return fmt;
     }
 
-    if(typeof GM_xmlhttpRequest === 'undefined' && typeof GM_registerMenuCommand === 'undefined' && typeof GM_setValue === 'undefined' && typeof GM_getValue === 'undefined' && typeof GM_addStyle === 'undefined'){
+    if (typeof GM_xmlhttpRequest === 'undefined' && typeof GM_registerMenuCommand === 'undefined' && typeof GM_setValue === 'undefined' && typeof GM_getValue === 'undefined' && typeof GM_addStyle === 'undefined') {
         Console_error("GM is no Ready.");
-    }else{
+    } else {
         Console_log("GM is Ready.");
     };
 
-    let BLab8A = class{
-        constructor(){
+    let BLab8A = class {
+        constructor() {
             this.data = this.load();
         }
-        load(){
+        load() {
             Console_log("正在加载数据");
             let newj = "{\"Roomid\":\"15667\",\"ruid\":\"1968333\",\"GList\":[],\"Lost\":[],\"New\":[],\"Check_date\":\"1997-07-22\",\"auto\":false,\"first_use\":true,\"HL\":[],\"History\":{}}";
             if (typeof GM_getValue !== 'undefined') {
-                let gdata = JSON.parse(GM_getValue(localItem,newj));
+                let gdata = JSON.parse(GM_getValue(localItem, newj));
                 return gdata;
-            }else{
+            } else {
                 let ldata = JSON.parse(localStorage.getItem(localItem) === null ? newj : localStorage.getItem(localItem));
                 return ldata;
             }
         };
-        save(d){
+        save(d) {
             Console_log("正在保存数据");
-            d===undefined?(d = this.data):(this.data = d);
-            typeof GM_getValue != 'undefined'?GM_setValue(localItem,JSON.stringify(d)):localStorage.setItem(localItem,JSON.stringify(d));
+            d === undefined ? (d = this.data) : (this.data = d);
+            typeof GM_getValue != 'undefined' ? GM_setValue(localItem, JSON.stringify(d)) : localStorage.setItem(localItem, JSON.stringify(d));
             return this;
         };
     };
@@ -87,21 +87,21 @@
 
     let window = unsafeWindow;
 
-    !DEV_Log&&GM_addStyle(GM_getResourceText("BiliUI-style"));
-    let HTTPsend = function(url, method, Type, successHandler, errorHandler) {
+    !DEV_Log && GM_addStyle(GM_getResourceText("BiliUI-style"));
+    let HTTPsend = function (url, method, Type, successHandler, errorHandler) {
         Console_Devlog(url);
         if (typeof GM_xmlhttpRequest != 'undefined') {
             GM_xmlhttpRequest({
-                method:method,
-                url:url,
-                responseType:Type,
-                onerror:function(response){
+                method: method,
+                url: url,
+                responseType: Type,
+                onerror: function (response) {
                     Console_Devlog(response.status);
                     errorHandler && errorHandler(response.status);
                 },
-                onload:function(response){
+                onload: function (response) {
                     let status;
-                    if(response.readyState == 4){ // `DONE`
+                    if (response.readyState == 4) { // `DONE`
                         status = response.status;
                         if (status == 200) {
                             Console_Devlog(response.response);
@@ -113,12 +113,12 @@
                     }
                 },
             });
-        }else{
+        } else {
             let xhr = new XMLHttpRequest();
             xhr.open(method, url, true);
             xhr.withCredentials = true;
             xhr.responseType = Type;
-            xhr.onreadystatechange = function() {
+            xhr.onreadystatechange = function () {
                 let status;
                 if (xhr.readyState == 4) { // `DONE`
                     status = xhr.status;
@@ -134,62 +134,62 @@
             xhr.send();
         }
     };
-    let JSON_parse = function(data){
+    let JSON_parse = function (data) {
         let rdata;
         try {
             rdata = JSON.parse(data);
-        } catch (error){
+        } catch (error) {
             Console_Devlog("JSON已解析，直接跳过");
             rdata = result;
         }
         return rdata;
     }
 
-    let GLC = class{
-        constructor(){
+    let GLC = class {
+        constructor() {
             this.List = new Array();
             this.old_List = bLab8A.data.GList;
             this.page = this.now = 1;
             this.first_use = bLab8A.data.first_use;
-            this.cdate = dateFormat("YYYY-mm-dd",new Date());
+            this.cdate = dateFormat("YYYY-mm-dd", new Date());
             this.runing = false;
         }
-        check_room(){
-            if (window.location.pathname != "/"+bLab8A.data.Roomid) {
-                if (window.location.pathname != "/blanc/"+bLab8A.data.Roomid) {
-                    Console_log("检测到当前直播间并非在执行范围内："+window.location.pathname);
+        check_room() {
+            if (window.location.pathname != "/" + bLab8A.data.Roomid) {
+                if (window.location.pathname != "/blanc/" + bLab8A.data.Roomid) {
+                    Console_log("检测到当前直播间并非在执行范围内：" + window.location.pathname);
                     return false;
                 }
                 return true;
             }
             return true;
         }
-        change_rid(Roomid){
-            if(Roomid === undefined){
+        change_rid(Roomid) {
+            if (Roomid === undefined) {
                 Roomid = bLab8A.data.Roomid;
-            }else{
+            } else {
                 if (bLab8A.data.Roomid != Roomid) {
                     bLab8A.data.GList = bLab8A.data.New = bLab8A.data.Lost = this.old_List = this.List = new Array();
                     bLab8A.data.first_use = this.first_use = true;
                 }
                 bLab8A.data.Roomid = Roomid;
             }
-            HTTPsend("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByUser?room_id="+Roomid,"GET","",(result)=>{
+            HTTPsend("https://api.live.bilibili.com/xlive/web-room/v1/index/getInfoByUser?room_id=" + Roomid, "GET", "", (result) => {
                 let rdata = JSON_parse(result);
                 if (rdata.code == 0) {
                     bLab8A.data.ruid = rdata.data.medal.up_medal.uid.toString();
                     bLab8A.save();
                     Console_log("保存成功。");
-                }else{
+                } else {
                     Console_error("保存出错。");
                 }
             });
         }
-        first_check(){
-            this.cdate = dateFormat("YYYY-mm-dd",new Date());
-            if(bLab8A.data.Check_date != this.cdate){
-                (bLab8A.data.HL.indexOf(bLab8A.data.Check_date) == -1)&&bLab8A.data.HL.push(bLab8A.data.Check_date);
-                bLab8A.data.History[bLab8A.data.Check_date] = {New:[],Lost:[]}
+        first_check() {
+            this.cdate = dateFormat("YYYY-mm-dd", new Date());
+            if (bLab8A.data.Check_date != this.cdate) {
+                (bLab8A.data.HL.indexOf(bLab8A.data.Check_date) == -1) && bLab8A.data.HL.push(bLab8A.data.Check_date);
+                bLab8A.data.History[bLab8A.data.Check_date] = { New: [], Lost: [] }
                 bLab8A.data.History[bLab8A.data.Check_date]["New"] = bLab8A.data.New;
                 bLab8A.data.History[bLab8A.data.Check_date]["Lost"] = bLab8A.data.Lost;
                 // console.log(bLab8A.data);
@@ -201,32 +201,32 @@
             this.runing = true;
             this.check(this.now);
         }
-        check(page){
+        check(page) {
             // 获得当前的舰长列表
-            if(page === undefined){
-                this.now = page = 1+this.now;
-            }else{
+            if (page === undefined) {
+                this.now = page = 1 + this.now;
+            } else {
                 this.now = page;
             }
-            HTTPsend("https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topList?roomid="+bLab8A.data.Roomid+"&page="+page+"&ruid="+bLab8A.data.ruid+"&page_size=29","GET","",(result)=>{
+            HTTPsend("https://api.live.bilibili.com/xlive/app-room/v2/guardTab/topList?roomid=" + bLab8A.data.Roomid + "&page=" + page + "&ruid=" + bLab8A.data.ruid + "&page_size=29", "GET", "", (result) => {
                 let rdata = JSON_parse(result);
                 if (rdata.code == 0) {
                     this.page = rdata.data.info.page;
                     rdata.data.list.forEach(e => {
                         this.List.push({
-                            uid:e.uid,
-                            username:e.username,
-                            face:e.face,
-                            guard_level:e.guard_level
+                            uid: e.uid,
+                            username: e.username,
+                            face: e.face,
+                            guard_level: e.guard_level
                         });
                     });
-                    if (rdata.data.info.page>page) {
-                        setTimeout(() => {this.check();}, 300);
-                    }else{
+                    if (rdata.data.info.page > page) {
+                        setTimeout(() => { this.check(); }, 300);
+                    } else {
                         // this.cdate = dateFormat("YYYY-mm-dd",new Date());
                         if (this.first_use) {
                             bLab8A.data.first_use = this.first_use = false;
-                        }else{
+                        } else {
                             this.check_lost();
                             this.check_new();
                         }
@@ -238,27 +238,27 @@
                 }
             });
         }
-        check_lost(){
+        check_lost() {
             // 丢失了多少舰长
             // 旧列表 - 新列表 = 丢失的舰长
-            let ll = this.check_list(this.old_List,this.List);
-            if(bLab8A.data.Check_date != this.cdate){
+            let ll = this.check_list(this.old_List, this.List);
+            if (bLab8A.data.Check_date != this.cdate) {
                 bLab8A.data.Lost = ll;
-            }else{
+            } else {
                 bLab8A.data.Lost.concat(ll);
             }
         }
-        check_new(){
+        check_new() {
             // 新增了多少舰长
             // 新列表 - 旧列表 = 新增的舰长
-            let nl = this.check_list(this.List,this.old_List);
-            if(bLab8A.data.Check_date != this.cdate){
+            let nl = this.check_list(this.List, this.old_List);
+            if (bLab8A.data.Check_date != this.cdate) {
                 bLab8A.data.New = nl;
-            }else{
+            } else {
                 bLab8A.data.New.concat(nl);
             }
         }
-        check_list(list1,list2){
+        check_list(list1, list2) {
             // 以上两个列表对比，没有相同的数据，放到 tmp_List 里
             let tmp_List = new Array();
             for (let i = 0; i < list1.length; i++) {
@@ -271,20 +271,20 @@
                         break;
                     }
                 }
-                !not_new&&tmp_List.push(e);
+                !not_new && tmp_List.push(e);
             }
             return tmp_List;
         }
     }
     let gLC = new GLC();
-    let CreactUI = function(){
-        if(document.getElementById("Bili8-UI")){
+    let CreactUI = function () {
+        if (document.getElementById("Bili8-UI")) {
             // lists.Set("加载中。。。");
             // lists.BG("normal");
             document.getElementById("Bili8-UI").style.display = "block";
-        }else{
+        } else {
             let Panel_ui = document.createElement("div");
-            Panel_ui.classList.add("Bili8-UI","Panel");
+            Panel_ui.classList.add("Bili8-UI", "Panel");
             Panel_ui.id = "Bili8-UI";
 
             let PanelClose_ui = document.createElement("button");
@@ -306,6 +306,10 @@
             List_ui2.classList.add("ListLost");
             List_ui2.readOnly = true;
 
+            let List_ui3 = document.createElement("textarea");
+            List_ui3.classList.add("ListNow");
+            List_ui3.readOnly = true;
+
             let MainBottom_ui = document.createElement("div");
             MainBottom_ui.classList.add("MainBottom");
 
@@ -314,38 +318,39 @@
             RIDInput_ui.placeholder = "主播房间ID";
             RIDInput_ui.type = "text";
             RIDInput_ui.value = bLab8A.data.Roomid;
-            RIDInput_ui.classList.add("MBtn","MBRID");
+            RIDInput_ui.classList.add("MBtn", "MBRID");
 
             let AutoInput_ui = document.createElement("input");
             AutoInput_ui.title = "自动查询";
             AutoInput_ui.type = "checkbox";
             AutoInput_ui.checked = bLab8A.data.auto;
-            AutoInput_ui.classList.add("MBtn","MBAuto");
+            AutoInput_ui.classList.add("MBtn", "MBAuto");
 
             let AutoText_ui = document.createElement("div");
             AutoText_ui.innerHTML = "自动查询";
-            AutoText_ui.classList.add("MBtn","MBTAuto");
+            AutoText_ui.classList.add("MBtn", "MBTAuto");
 
             let NewText_ui = document.createElement("div");
             NewText_ui.innerHTML = "新增";
-            NewText_ui.classList.add("MBtn","MBTNew");
+            NewText_ui.classList.add("MBtn", "MBTNew");
 
             let LostText_ui = document.createElement("div");
             LostText_ui.innerHTML = "失去";
-            LostText_ui.classList.add("MBtn","MBTLost");
+            LostText_ui.classList.add("MBtn", "MBTLost");
 
             let SaveSetting_ui = document.createElement("button");
-            SaveSetting_ui.classList.add("MBtn","MBSaveSetting");
+            SaveSetting_ui.classList.add("MBtn", "MBSaveSetting");
             SaveSetting_ui.innerText = "保存设置";
 
             let LoadList_ui = document.createElement("button");
-            LoadList_ui.classList.add("MBtn","LoadList");
+            LoadList_ui.classList.add("MBtn", "LoadList");
             LoadList_ui.innerText = "开始查询";
             // LoadList_ui.disabled = true;
 
             Panel_ui.appendChild(PanelClose_ui);
             Panel_ui.appendChild(StateText_ui);
             MainList_ui.appendChild(List_ui);
+            MainList_ui.appendChild(List_ui3);
             MainList_ui.appendChild(List_ui2);
             Panel_ui.appendChild(MainList_ui);
             MainBottom_ui.appendChild(RIDInput_ui);
@@ -358,69 +363,69 @@
             Panel_ui.appendChild(MainBottom_ui);
             document.body.appendChild(Panel_ui);
 
-            SaveSetting_ui.addEventListener("click",()=>{
-                (bLab8A.data.Roomid != RIDInput_ui.value)&&confirm("确定要改变监听的直播间吗？改变后将清空之前保存的舰长列表！")&&gLC.change_rid(RIDInput_ui.value);
+            SaveSetting_ui.addEventListener("click", () => {
+                (bLab8A.data.Roomid != RIDInput_ui.value) && confirm("确定要改变监听的直播间吗？改变后将清空之前保存的舰长列表！") && gLC.change_rid(RIDInput_ui.value);
                 bLab8A.data.auto = AutoInput_ui.checked;
                 bLab8A.save();
                 lists.Set("设置已保存");
             });
-            LoadList_ui.addEventListener("click",()=>{
-                if(!gLC.runing){
+            LoadList_ui.addEventListener("click", () => {
+                if (!gLC.runing) {
                     if (!gLC.check_room()) {
-                        confirm("当前直播间并不在设置的直播间内，是否先回到设置的直播间？")&&(window.location.href = "/"+bLab8A.data.Roomid);
+                        confirm("当前直播间并不在设置的直播间内，是否先回到设置的直播间？") && (window.location.href = "/" + bLab8A.data.Roomid);
                         return;
                     }
                     lists.BG("running");
                     lists.Set("正在查询");
                     gLC.first_check();
-                    let t2 = setInterval(()=>{
+                    let t2 = setInterval(() => {
                         if (!gLC.runing) {
                             load_list();
                             lists.BG("normal");
-                            lists.Set("新增："+bLab8A.data.New.length+"，失去："+bLab8A.data.Lost.length);
+                            lists.Set("新增：" + bLab8A.data.New.length + "，失去：" + bLab8A.data.Lost.length);
                             clearInterval(t2);
                         }
-                    },100);
-                }else{
+                    }, 100);
+                } else {
                     lists.Set("请求已经发送过去了，请勿重复点击！");
                 }
             });
-            PanelClose_ui.addEventListener("click",()=>{
+            PanelClose_ui.addEventListener("click", () => {
                 document.getElementById("Bili8-UI").style.display = "none";
             });
         }
     };
-    let Lists = class{
-        Get(obj){
-            if(obj === undefined){
+    let Lists = class {
+        Get(obj) {
+            if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("State")[0];
             }
             return obj.innerHTML;
         };
-        Set(text,obj){
-            if(obj === undefined){
+        Set(text, obj) {
+            if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("State")[0];
             }
             obj.innerHTML = text;
         };
-        Add(text,obj){
-            if(obj === undefined){
+        Add(text, obj) {
+            if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("List")[0];
             }
-            if(obj.innerHTML == ""){
+            if (obj.innerHTML == "") {
                 obj.innerHTML = text;
-            }else{
+            } else {
                 obj.innerHTML += "\n" + text;
             }
         };
-        Clear(obj){
-            if(obj === undefined){
+        Clear(obj) {
+            if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("List")[0];
             }
             obj.innerHTML = "";
         };
-        BG(status,obj){
-            if(obj === undefined){
+        BG(status, obj) {
+            if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("State")[0];
             }
             let color = "#FFFFFF";
@@ -446,61 +451,68 @@
     };
     let lists = new Lists();
 
-    let load_list = function(){
+    let load_list = function () {
         let List_ui = document.getElementById("Bili8-UI").getElementsByClassName("ListNew")[0];
         lists.Clear(List_ui);
-        if(bLab8A.data.New.length > 0) {
+        if (bLab8A.data.New.length > 0) {
             bLab8A.data.New.forEach(e => {
-                lists.Add(e.username+"："+e.uid,List_ui);
+                lists.Add(e.username + "：" + e.uid, List_ui);
             });
         }
         let List_ui2 = document.getElementById("Bili8-UI").getElementsByClassName("ListLost")[0];
         lists.Clear(List_ui2);
-        if(bLab8A.data.Lost.length > 0) {
+        if (bLab8A.data.Lost.length > 0) {
             bLab8A.data.Lost.forEach(e => {
-                lists.Add(e.username+"："+e.uid,List_ui2);
+                lists.Add(e.username + "：" + e.uid, List_ui2);
+            });
+        }
+        let List_ui3 = document.getElementById("Bili8-UI").getElementsByClassName("ListNow")[0];
+        lists.Clear(List_ui3);
+        if (bLab8A.data.GList.length > 0) {
+            bLab8A.data.GList.forEach(e => {
+                lists.Add(e.username + "：" + e.uid, List_ui3);
             });
         }
     }
 
-    
-    let CreactMenu = function(){
-        let Creact_G = function(Mode){
-            if(Mode==1){
+
+    let CreactMenu = function () {
+        let Creact_G = function (Mode) {
+            if (Mode == 1) {
                 if (!gLC.check_room()) {
-                    confirm("当前直播间并不在设置的直播间内，是否先回到设置的直播间？")&&(window.location.href = "/"+bLab8A.data.Roomid);
+                    confirm("当前直播间并不在设置的直播间内，是否先回到设置的直播间？") && (window.location.href = "/" + bLab8A.data.Roomid);
                     return;
                 }
                 lists.BG("running");
                 lists.Set("正在查询");
                 gLC.first_check();
-                let t2 = setInterval(()=>{
+                let t2 = setInterval(() => {
                     if (!gLC.runing) {
                         load_list();
                         lists.BG("normal");
-                        lists.Set("新增："+bLab8A.data.New.length+"，失去："+bLab8A.data.Lost.length);
+                        lists.Set("新增：" + bLab8A.data.New.length + "，失去：" + bLab8A.data.Lost.length);
                         clearInterval(t2);
                     }
-                },100);
+                }, 100);
             }
             CreactUI();
         }
-        GM_registerMenuCommand("打开面板",()=>{Creact_G(0)});
-        GM_registerMenuCommand("开始查询",()=>{Creact_G(1)});
+        GM_registerMenuCommand("打开面板", () => { Creact_G(0) });
+        GM_registerMenuCommand("开始查询", () => { Creact_G(1) });
     };
 
     CreactMenu();
-    gLC.check_room()&&CreactUI();
+    gLC.check_room() && CreactUI();
     document.getElementById("Bili8-UI").style.display = "none";
 
-    gLC.check_room()&&bLab8A.data.auto&&gLC.first_check();
+    gLC.check_room() && bLab8A.data.auto && gLC.first_check();
     if (gLC.runing) {
-        let t2 = setInterval(()=>{
+        let t2 = setInterval(() => {
             if (!gLC.runing) {
                 load_list();
-                lists.Set("新增："+bLab8A.data.New.length+"，失去："+bLab8A.data.Lost.length);
+                lists.Set("新增：" + bLab8A.data.New.length + "，失去：" + bLab8A.data.Lost.length);
                 clearInterval(t2);
             }
-        },100);
+        }, 100);
     }
 })();
