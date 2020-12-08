@@ -33,19 +33,27 @@
 }
 #Bili8-UI .ListNew{
     position: absolute;
-    width: calc(50% - 3px);
+    width: calc(30% - 3px);
     top: 0;
     bottom: 0;
     left: 0;
-    right: calc(50% - 3px);
+    right: calc(70% - 3px);
+    resize: none;
+}
+#Bili8-UI .ListNow{
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40%;
+    left: 30%;
     resize: none;
 }
 #Bili8-UI .ListLost{
     position: absolute;
-    width: calc(50% - 3px);
+    width: calc(30% - 3px);
     top: 0;
     bottom: 0;
-    left: calc(50% - 3px);
+    left: calc(70% - 3px);
     right: 0;
     resize: none;
 }
