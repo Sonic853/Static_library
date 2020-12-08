@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩直播间舰长列表新增减少检测
-// @version      1.0.2
+// @version      1.0.3
 // @description  看看是哪个小宝贝过期了2333
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -87,7 +87,7 @@
 
     let window = unsafeWindow;
 
-    !DEV_Log && GM_addStyle(GM_getResourceText("BiliUI-style"));
+    !DEV_Log && GM_addStyle(`#Bili8-UI{position:fixed;left:0;bottom:0;z-index:9999;background-color:white;border:1px solid black;width:400px;height:300px;}#Bili8-UI .Close{position:absolute;top:-25px;height:25px;right:0;}#Bili8-UI .State{position:absolute;top:2px;height:20px;line-height:20px;left:2px;right:2px;}#Bili8-UI .MainList{position:absolute;top:22px;bottom:44px;left:2px;right:2px;border:1px solid black;overflow-y:auto;}#Bili8-UI .ListNew{position:absolute;width:calc(30% - 3px);top:0;bottom:0;left:0;right:calc(70% - 3px);resize:none;}#Bili8-UI .ListNow{position:absolute;top:0;bottom:0;width:40%;left:30%;resize:none;}#Bili8-UI .ListLost{position:absolute;width:calc(30% - 3px);top:0;bottom:0;left:calc(70% - 3px);right:0;resize:none;}#Bili8-UI .MainBottom{position:absolute;bottom:2px;left:2px;right:2px;height:40px;}#Bili8-UI .MainBottom .MBtn{position:absolute;display:block;height:20px;padding:0;box-sizing:border-box;}#Bili8-UI .MainBottom .MBRID{top:20px;left:0;width:100px;}#Bili8-UI .MainBottom .MBTAuto{top:20px;left:100px;width:50px;line-height:20px;}#Bili8-UI .MainBottom .MBAuto{top:20px;left:150px;width:20px;}#Bili8-UI .MainBottom .MBSaveSetting{top:20px;left:170px;}#Bili8-UI .MainBottom .LoadList{bottom:0;right:0;height:28px;width:70px;}#Bili8-UI .MainBottom .MBTNew{top:0;left:0;}#Bili8-UI .MainBottom .MBTLost{top:0;right:0;}`);
     let HTTPsend = function (url, method, Type, successHandler, errorHandler) {
         Console_Devlog(url);
         if (typeof GM_xmlhttpRequest != 'undefined') {
