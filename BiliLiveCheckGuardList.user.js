@@ -1,11 +1,10 @@
 // ==UserScript==
 // @name         哔哩哔哩直播间舰长列表新增减少检测
-// @version      1.0.3
+// @version      1.0.4
 // @description  看看是哪个小宝贝过期了2333
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://live.bilibili.com/*
-// @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-Guard-style.min.css?t=20201208001
 // @run-at       document-end
 // @license      MIT License
 // @grant        GM_addStyle
