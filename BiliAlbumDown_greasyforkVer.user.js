@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.2.4
+// @version      1.2.5
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
-// @require      https://cdn.bootcdn.net/ajax/libs/jszip/3.5.0/jszip.min.js
-// @require      https://greasyfork.org/scripts/405376-filesaver-html5/code/FileSaver(html5).js?version=816426
-// @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit-use-gm-xmlhttprequest/code/Aria2%20RPC%20Edit%20(use%20GM_xmlhttpRequest).js?version=801673
+// @require      https://cdn.jsdelivr.net/gh/Stuk/jszip@3.5.0/dist/jszip.min.js
+// @require      https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js
+// @require      https://cdn.jsdelivr.net/gh/Sonic853/Static_library/Aria2_library.js
 // @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
 // @run-at       document-end
 // @license      MIT License
@@ -738,8 +738,8 @@
                                     }
                                     // let rs = result.match(/<div class=[\"|']article-holder[\"|']>(.*?)<\/div>/g)
                                     // console.log(rs)
-                                    let rs = result.match(/<img data-src=[\"|'](.*?)[\"|']/g)
-                                    // console.log(rs)
+                                    let rs = result.match(/data-src=[\"|'](.*?)[\"|']/g)
+                                    Console_Devlog(rs)
                                     rs.forEach(ce => {
                                         ce = ce.substring(head, ce.length - 1)
                                         if (ce.startsWith("//")) {
