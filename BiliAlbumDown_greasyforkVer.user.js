@@ -5,8 +5,8 @@
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
-// @require      https://cdn.jsdelivr.net/gh/Stuk/jszip@3.5.0/dist/jszip.min.js
-// @require      https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js
+// @require      https://cdn.bootcdn.net/ajax/libs/jszip/3.5.0/jszip.min.js
+// @require      https://greasyfork.org/scripts/405376-filesaver-html5/code/FileSaver(html5).js?version=816426
 // @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit-use-gm-xmlhttprequest/code/Aria2%20RPC%20Edit%20(use%20GM_xmlhttpRequest).js?version=801673
 // @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
 // @run-at       document-end
