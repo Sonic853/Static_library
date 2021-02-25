@@ -18,6 +18,11 @@
 // @grant        GM_xmlhttpRequest
 // @grant        GM_getResourceText
 // ==/UserScript==
+// 
+// 律师函收到之日，即是我死期到来之时。
+// 学写代码学到现在也不过是一枚棋子，随用随弃。
+// ：）
+// 
 // https://api.vc.bilibili.com/link_draw/v1/doc/detail?doc_id=70335534
 // https://api.vc.bilibili.com/link_draw/v1/doc/doc_list?uid=339679&page_num=0&page_size=541&biz=all
 // https://api.vc.bilibili.com/link_draw/v1/doc/upload_count?uid=339679
