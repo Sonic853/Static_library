@@ -1,10 +1,11 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.2.7
+// @version      1.3.0
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
+// @include      https://www.bilibili.com/h5/mall/suit/detail*
 // @require      https://cdn.jsdelivr.net/gh/Stuk/jszip@3.5.0/dist/jszip.min.js
 // @require      https://cdn.jsdelivr.net/gh/eligrey/FileSaver.js/dist/FileSaver.min.js
 // @require      https://cdn.jsdelivr.net/gh/Sonic853/Static_library/Aria2_library.js
@@ -118,54 +119,62 @@
         Console_Devlog(url)
         if (typeof GM_xmlhttpRequest != 'undefined') {
             return new Promise((rl, rj) => {
-                GM_xmlhttpRequest({
-                    method: method,
-                    url: url,
-                    responseType: Type,
-                    onerror: function (response) {
-                        Console_Devlog(response.status)
-                        errorHandler && errorHandler(response.status)
-                        rj(response.status)
-                    },
-                    onload: function (response) {
+                try {
+                    GM_xmlhttpRequest({
+                        method: method,
+                        url: url,
+                        responseType: Type,
+                        onerror: function (response) {
+                            Console_Devlog(response.status)
+                            errorHandler && errorHandler(response.status)
+                            rj(response.status)
+                        },
+                        onload: function (response) {
+                            let status
+                            if (response.readyState == 4) { // `DONE`
+                                status = response.status
+                                if (status == 200) {
+                                    Console_Devlog(response.response)
+                                    successHandler && successHandler(response.response)
+                                    rl(response.response)
+                                } else {
+                                    Console_Devlog(status)
+                                    errorHandler && errorHandler(status)
+                                    rj(status)
+                                }
+                            }
+                        },
+                    })
+                } catch (error) {
+                    rj(error)
+                }
+            })
+        } else {
+            return new Promise((rl, rj) => {
+                try {
+                    let xhr = new XMLHttpRequest()
+                    xhr.open(method, url, true)
+                    xhr.withCredentials = true
+                    xhr.responseType = Type
+                    xhr.onreadystatechange = function () {
                         let status
-                        if (response.readyState == 4) { // `DONE`
-                            status = response.status
+                        if (xhr.readyState == 4) { // `DONE`
+                            status = xhr.status
                             if (status == 200) {
-                                Console_Devlog(response.response)
-                                successHandler && successHandler(response.response)
-                                rl(response.response)
+                                Console_log(xhr.response)
+                                successHandler && successHandler(xhr.response)
+                                rl(xhr.response)
                             } else {
-                                Console_Devlog(status)
+                                Console_log(status)
                                 errorHandler && errorHandler(status)
                                 rj(status)
                             }
                         }
-                    },
-                })
-            })
-        } else {
-            return new Promise((rl, rj) => {
-                let xhr = new XMLHttpRequest()
-                xhr.open(method, url, true)
-                xhr.withCredentials = true
-                xhr.responseType = Type
-                xhr.onreadystatechange = function () {
-                    let status
-                    if (xhr.readyState == 4) { // `DONE`
-                        status = xhr.status
-                        if (status == 200) {
-                            Console_log(xhr.response)
-                            successHandler && successHandler(xhr.response)
-                            rl(xhr.response)
-                        } else {
-                            Console_log(status)
-                            errorHandler && errorHandler(status)
-                            rj(status)
-                        }
                     }
+                    xhr.send()
+                } catch (error) {
+                    rj(error)
                 }
-                xhr.send()
             })
         }
     }
@@ -324,7 +333,7 @@
                 let obj = document.getElementById("Bili8-UI").getElementsByClassName("List")[0]
                 lists.Clear(obj)
                 lists.Hide(obj)
-                let zz = async ()=>{
+                let zz = async () => {
                     for (let i = 0; i < uFA.imglist.length; i++) {
                         const element = uFA.imglist[i]
                         lists.Add(element.url, obj)
@@ -345,11 +354,14 @@
                 }
             }, 100)
         }
-        GM_registerMenuCommand("下载相册", () => { Creact_G(0) })
-        GM_registerMenuCommand("下载视频封面", () => { Creact_G(1) })
-        GM_registerMenuCommand("下载头像、头图、直播封面、直播壁纸", () => { Creact_G(2) })
-        GM_registerMenuCommand("下载专栏图片", () => { Creact_G(4) })
-        DEV_Log && GM_registerMenuCommand("下载头衔（开发者用）", () => { Creact_G(3) })
+        if (window.location.href.startsWith("https://www.bilibili.com/h5/mall/suit/detail")) GM_registerMenuCommand("下载主题图片", () => { Creact_G(5) })
+        else {
+            GM_registerMenuCommand("下载相册", () => { Creact_G(0) })
+            GM_registerMenuCommand("下载视频封面", () => { Creact_G(1) })
+            GM_registerMenuCommand("下载头像、头图、直播封面、直播壁纸", () => { Creact_G(2) })
+            GM_registerMenuCommand("下载专栏图片", () => { Creact_G(4) })
+            DEV_Log && GM_registerMenuCommand("下载头衔（开发者用）", () => { Creact_G(3) })
+        }
     }
     let BG_Default = [
         "1780c98271ead667b2807127ef807ceb4809c599.png",
@@ -433,13 +445,13 @@
             }
             obj.style.backgroundColor = color
         }
-        Hide(obj){
+        Hide(obj) {
             if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("List")[0]
             }
             obj.style.display = "none"
         }
-        Show(obj){
+        Show(obj) {
             if (obj === undefined) {
                 obj = document.getElementById("Bili8-UI").getElementsByClassName("List")[0]
             }
@@ -605,6 +617,22 @@
                         })
                     }
                     break
+                case 5:
+                    {
+                        let id = (new URL(window.location.href)).searchParams.get("id")
+                        this.uid = "suit_" + id
+                        HTTPsend("https://api.bilibili.com/x/garb/mall/item/suit/v2?part=suit&item_id=" + id, "GET", "").then(result => {
+                            // result = removejp14(result,"__jp14(")
+                            let rdata = JSON_parse(result)
+                            // console.log(rdata)
+                            if (rdata.code == 0) {
+                                this.set_all_count(rdata.data, Mode)
+                            } else {
+                                Console_error(result)
+                            }
+                        })
+                    }
+                    break
 
                 default:
                     break
@@ -629,159 +657,421 @@
             if (Mode === undefined) {
                 Mode = this.Mode
             }
-            if (Mode == 0) {
-                setTimeout(() => {
-                    let z = 1
-                    let size = 30
-                    if (all_count > size) {
-                        z = Math.ceil(all_count / size)
+            switch (Mode) {
+                case 0:
+                    setTimeout(() => {
+                        let z = 1
+                        let size = 30
+                        if (all_count > size) {
+                            z = Math.ceil(all_count / size)
+                        }
+                        this.imglist = []
+                        this.index = 0
+                        let down = async (uid, z, size) => {
+                            for (let num = 0; num < z; num++) {
+                                lists.Set("正在分析第" + (1 + num).toString() + "页")
+                                await RList.Push()
+                                let rdata = JSON_parse(await HTTPsend(`https://api.vc.bilibili.com/link_draw/v1/doc/doc_list?uid=${uid}&page_num=${num}&page_size=${size}&biz=all`, "GET", ""))
+                                Console_Devlog(rdata)
+                                if (rdata.code == 0) {
+                                    for (let i = 0; i < rdata.data.items.length; i++) {
+                                        const element = rdata.data.items[i]
+                                        if (element.count == 1) {
+                                            this.add_img(element.pictures[0].img_src, element.doc_id, 0)
+                                            this.index++
+                                        } else if (element.count == element.pictures.length) {
+                                            let cou = 0
+                                            for (let k = 0; k < element.pictures.length; k++) {
+                                                const element2 = element.pictures[k]
+                                                this.add_img(element2.img_src, element.doc_id, cou)
+                                                cou++
+                                            }
+                                            this.index++
+                                        } else {
+                                            this.load_img_detail(element.doc_id)
+                                        }
+                                    }
+                                } else {
+                                    Console_error(result)
+                                }
+                            }
+                            Console_log("加载完成，有" + this.imglist.length + "个图片。")
+                            this.GetOK = true
+                            return
+                        }
+                        down(uid, z, size)
+                    })
+                    break;
+                case 1:
+                    setTimeout(() => {
+                        let z = 1
+                        if (all_count > 30) {
+                            z = Math.ceil(all_count / 30)
+                        }
+                        this.imglist = []
+                        this.index = 0
+                        let time = 1
+                        for (let i = 1; i <= z; i++) {
+                            setTimeout(() => {
+                                HTTPsend("https://api.bilibili.com/x/space/arc/search?mid=" + uid + "&ps=30&tid=0&pn=" + i + "&keyword=&order=pubdate", "GET", "", (result) => {
+                                    lists.Set("正在分析第" + i.toString() + "页")
+                                    let rdata = JSON_parse(result)
+                                    if (rdata.code == 0) {
+                                        rdata.data.list.vlist.forEach(element => {
+                                            if (element.pic.startsWith("//")) {
+                                                this.add_img_video("https:" + element.pic, element.aid)
+                                            } else if (element.pic.startsWith("http:") || element.pic.startsWith("https:")) {
+                                                this.add_img_video(element.pic, element.aid)
+                                            } else {
+                                                this.add_img_video(element.pic, element.aid)
+                                            }
+                                            this.index++
+                                        })
+                                    } else {
+                                        Console_error(result)
+                                    }
+                                    i == z && setTimeout(() => { Console_log("加载完成，有" + all_count + "个图片。"); this.GetOK = true; })
+                                })
+                            }, time)
+                            time += 450
+                        }
+                    })
+                    break;
+                case 3:
+                    {
+                        this.imglist = []
+                        this.index = 0
+                        this.all_count = all_count.length
+                        all_count.forEach(e => {
+                            this.add_img_FBLB(e.web_pic_url, e.identification + ".png")
+                            this.index++
+                        })
+                        this.GetOK = true
                     }
-                    this.imglist = []
-                    this.index = 0
-                    let down = async (uid, z, size) => {
-                        for (let num = 0; num < z; num++) {
-                            lists.Set("正在分析第" + (1+num).toString() + "页")
-                            await RList.Push()
-                            let rdata = JSON_parse(await HTTPsend(`https://api.vc.bilibili.com/link_draw/v1/doc/doc_list?uid=${uid}&page_num=${num}&page_size=${size}&biz=all`, "GET", ""))
-                            Console_Devlog(rdata)
-                            if (rdata.code == 0) {
-                                for (let i = 0; i < rdata.data.items.length; i++) {
-                                    const element = rdata.data.items[i]
-                                    if (element.count == 1) {
-                                        this.add_img(element.pictures[0].img_src, element.doc_id, 0)
-                                        this.index++
-                                    } else if (element.count == element.pictures.length) {
+                    break;
+                case 4:
+                    setTimeout(() => {
+                        let z = 1
+                        if (all_count > 12) {
+                            z = Math.ceil(all_count / 12)
+                        }
+                        this.imglist = []
+                        this.index = 0
+                        let time = 1
+                        let cvlist = []
+                        let loadcvlist = () => {
+                            let cvtime = 1
+                            console.log(cvlist)
+                            let head = '<img data-src="'.length
+                            for (let i = 0; i < cvlist.length; i++) {
+                                setTimeout(() => {
+                                    const e = cvlist[i]
+                                    HTTPsend(e.url, "GET", "", (result) => {
+                                        let p = i
+                                        p++
+                                        lists.Set("正在分析第" + p.toString() + "个专栏里的图片")
                                         let cou = 0
-                                        for (let k = 0; k < element.pictures.length; k++) {
-                                            const element2 = element.pictures[k]
-                                            this.add_img(element2.img_src, element.doc_id, cou)
+                                        if (e.banner != "") {
+                                            this.add_img(e.banner, e.id, cou)
                                             cou++
                                         }
-                                        this.index++
-                                    } else {
-                                        this.load_img_detail(element.doc_id)
-                                    }
-                                }
-                            } else {
-                                Console_error(result)
+                                        // let rs = result.match(/<div class=[\"|']article-holder[\"|']>(.*?)<\/div>/g)
+                                        // console.log(rs)
+                                        let rs = result.match(/data-src=[\"|'](.*?)[\"|']/g)
+                                        Console_Devlog(rs)
+                                        rs.forEach(ce => {
+                                            // if (ce.startsWith("//")) {
+                                            this.add_img("https://" + ce.split("//")[1].slice(0, -1), e.id, cou)
+                                            // } else if (ce.startsWith("http:") || ce.startsWith("https:")) {
+                                            //     this.add_img(ce, e.id, cou)
+                                            // } else {
+                                            //     this.add_img(ce, e.id, cou)
+                                            // }
+                                            cou++
+                                        })
+                                        // <img data-src="//i0.hdslb.com/bfs/article/ba284705be500ebb08b2f42a5f7cc0477780a67c.jpg" width="870" height="1200" data-size="388284"/>
+                                        p == cvlist.length && setTimeout(() => { this.index = 999; this.all_count = this.imglist.length; Console_log("加载完成，有" + this.all_count + "个图片。"); this.GetOK = true; })
+                                    })
+                                }, cvtime)
+                                cvtime += 950
                             }
                         }
-                        Console_log("加载完成，有" + this.imglist.length + "个图片。")
-                        this.GetOK = true
-                        return
-                    }
-                    down(uid,z,size)
-                })
-            } else if (Mode == 1) {
-                setTimeout(() => {
-                    let z = 1
-                    if (all_count > 30) {
-                        z = Math.ceil(all_count / 30)
-                    }
-                    this.imglist = []
-                    this.index = 0
-                    let time = 1
-                    for (let i = 1; i <= z; i++) {
-                        setTimeout(() => {
-                            HTTPsend("https://api.bilibili.com/x/space/arc/search?mid=" + uid + "&ps=30&tid=0&pn=" + i + "&keyword=&order=pubdate", "GET", "", (result) => {
-                                lists.Set("正在分析第" + i.toString() + "页")
-                                let rdata = JSON_parse(result)
-                                if (rdata.code == 0) {
-                                    rdata.data.list.vlist.forEach(element => {
-                                        if (element.pic.startsWith("//")) {
-                                            this.add_img_video("https:" + element.pic, element.aid)
-                                        } else if (element.pic.startsWith("http:") || element.pic.startsWith("https:")) {
-                                            this.add_img_video(element.pic, element.aid)
-                                        } else {
-                                            this.add_img_video(element.pic, element.aid)
-                                        }
-                                        this.index++
-                                    })
-                                } else {
-                                    Console_error(result)
-                                }
-                                i == z && setTimeout(() => { Console_log("加载完成，有" + all_count + "个图片。"); this.GetOK = true; })
-                            })
-                        }, time)
-                        time += 450
-                    }
-                })
-            } else if (Mode == 3) {
-                this.imglist = []
-                this.index = 0
-                this.all_count = all_count.length
-                all_count.forEach(e => {
-                    this.add_img_FBLB(e.web_pic_url, e.identification + ".png")
-                    this.index++
-                })
-                this.GetOK = true
-            } else if (Mode == 4) {
-                setTimeout(() => {
-                    let z = 1
-                    if (all_count > 12) {
-                        z = Math.ceil(all_count / 12)
-                    }
-                    this.imglist = []
-                    this.index = 0
-                    let time = 1
-                    let cvlist = []
-                    let loadcvlist = () => {
-                        let cvtime = 1
-                        console.log(cvlist)
-                        let head = '<img data-src="'.length
-                        for (let i = 0; i < cvlist.length; i++) {
+                        for (let i = 1; i <= z; i++) {
                             setTimeout(() => {
-                                const e = cvlist[i]
-                                HTTPsend(e.url, "GET", "", (result) => {
-                                    let p = i
-                                    p++
-                                    lists.Set("正在分析第" + p.toString() + "个专栏里的图片")
-                                    let cou = 0
-                                    if (e.banner != "") {
-                                        this.add_img(e.banner, e.id, cou)
-                                        cou++
+                                HTTPsend("https://api.bilibili.com/x/space/article?mid=" + this.uid + "&pn=" + i + "&ps=12&sort=publish_time", "GET", "", (result) => {
+                                    lists.Set("正在分析第" + i.toString() + "页")
+                                    let rdata = JSON_parse(result)
+                                    if (rdata.code == 0) {
+                                        rdata.data.articles.forEach(element => {
+                                            cvlist.push({ url: "https://www.bilibili.com/read/cv" + element.id.toString(), id: element.id, banner: element.banner_url })
+                                            // this.index++
+                                        })
+                                    } else {
+                                        Console_error(result)
                                     }
-                                    // let rs = result.match(/<div class=[\"|']article-holder[\"|']>(.*?)<\/div>/g)
-                                    // console.log(rs)
-                                    let rs = result.match(/data-src=[\"|'](.*?)[\"|']/g)
-                                    Console_Devlog(rs)
-                                    rs.forEach(ce => {
-                                        // if (ce.startsWith("//")) {
-                                            this.add_img("https://" + ce.split("//")[1].slice(0, -1), e.id, cou)
-                                        // } else if (ce.startsWith("http:") || ce.startsWith("https:")) {
-                                        //     this.add_img(ce, e.id, cou)
-                                        // } else {
-                                        //     this.add_img(ce, e.id, cou)
-                                        // }
-                                        cou++
-                                    })
-                                    // <img data-src="//i0.hdslb.com/bfs/article/ba284705be500ebb08b2f42a5f7cc0477780a67c.jpg" width="870" height="1200" data-size="388284"/>
-                                    p == cvlist.length && setTimeout(() => { this.index = 999; this.all_count = this.imglist.length; Console_log("加载完成，有" + this.all_count + "个图片。"); this.GetOK = true; })
+                                    i == z && setTimeout(() => { Console_log("加载完成，有" + cvlist.length.toString() + "个专栏。"); loadcvlist(); })
                                 })
-                            }, cvtime)
-                            cvtime += 950
+                            }, time)
+                            time += 450
                         }
+                    })
+                    break;
+                case 5:
+                    {
+                        this.imglist = []
+                        this.index = 0
+                        this.all_count = all_count
+                        // all_count === jjjj.data
+                        this.add_img_FBLB(all_count.item.properties.fan_share_image, "fan_share_image.png")
+                        this.index++
+                        this.add_img_FBLB(all_count.item.properties.image_cover, "image_cover.png")
+                        this.index++
+                        this.add_img_FBLB(all_count.item.properties.image_cover_long, "image_cover_long.png")
+                        this.index++
+                        this.add_img_FBLB(all_count.item.properties.image_desc, "image_desc.png")
+                        this.index++
+
+                        for (let i = 0; i < all_count.suit_items.card.length; i++) {
+                            const e = all_count.suit_items.card[i]
+                            this.add_img_FBLB(e.properties.image, `card_image_${i.toString()}.png`)
+                            this.index++
+                            if (e.properties.image_cover) {
+                                this.add_img_FBLB(e.properties.image_cover, `card_image_cover_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.image_enhance) {
+                                this.add_img_FBLB(e.properties.image_enhance, `card_image_enhance_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.image_enhance_frame) {
+                                this.add_img_FBLB(e.properties.image_enhance_frame, `card_image_enhance_frame_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.image_preview_big) {
+                                this.add_img_FBLB(e.properties.image_preview_big, `card_image_preview_big_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.image_preview_small) {
+                                this.add_img_FBLB(e.properties.image_preview_small, `card_image_preview_small_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.card_bg.length; i++) {
+                            const e = all_count.suit_items.card_bg[i]
+                            this.add_img_FBLB(e.properties.image, `card_bg_image_${i.toString()}.png`)
+                            this.index++
+                            if (e.properties.image_preview_big) {
+                                this.add_img_FBLB(e.properties.image_preview_big, `card_bg_image_preview_big_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.image_preview_small) {
+                                this.add_img_FBLB(e.properties.image_preview_small, `card_bg_image_preview_small_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.emoji_package.length; i++) {
+                            const e = all_count.suit_items.emoji_package[i]
+                            this.add_img_FBLB(e.properties.image, `emoji_package_image_${i.toString()}.png`)
+                            this.index++
+                            for (let x = 0; x < e.items.length; x++) {
+                                const el = e.items[x]
+                                this.add_img_FBLB(el.properties.image, `emoji_item_image_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.loading.length; i++) {
+                            const e = all_count.suit_items.loading[i]
+                            if (e.properties.image_preview_small) {
+                                this.add_img_FBLB(e.properties.image_preview_small, `loading_image_preview_small_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.loading_frame_url) {
+                                this.add_img_FBLB(e.properties.loading_frame_url, `loading_loading_frame_url_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.loading_url) {
+                                this.add_img_FBLB(e.properties.loading_url, `loading_loading_url_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.pendant.length; i++) {
+                            const e = all_count.suit_items.pendant[i]
+                            if (e.properties.image) {
+                                this.add_img_FBLB(e.properties.image, `pendant_image_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.play_icon.length; i++) {
+                            const e = all_count.suit_items.play_icon[i]
+                            if (e.properties.drag_icon) {
+                                this.add_img_FBLB(e.properties.drag_icon, `drag_${e.properties.drag_icon_hash}_${i.toString()}.json`)
+                                this.index++
+                            }
+                            if (e.properties.icon) {
+                                this.add_img_FBLB(e.properties.icon, `drag_icon_${e.properties.icon_hash}_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.squared_image) {
+                                this.add_img_FBLB(e.properties.squared_image, `play_icon_squared_image_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.static_icon_image) {
+                                this.add_img_FBLB(e.properties.static_icon_image, `play_icon_static_icon_image_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.skin.length; i++) {
+                            const e = all_count.suit_items.skin[i]
+                            if (e.properties.head_bg) {
+                                this.add_img_FBLB(e.properties.head_bg, `skin_head_bg_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.head_myself_bg) {
+                                this.add_img_FBLB(e.properties.head_myself_bg, `skin_head_myself_bg_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.head_myself_squared_bg) {
+                                this.add_img_FBLB(e.properties.head_myself_squared_bg, `skin_head_myself_squared_bg_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.head_tab_bg) {
+                                this.add_img_FBLB(e.properties.head_tab_bg, `skin_head_tab_bg_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image_cover) {
+                                this.add_img_FBLB(e.properties.image_cover, `skin_image_cover_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image_preview) {
+                                this.add_img_FBLB(e.properties.image_preview, `skin_image_preview_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.package_url) {
+                                this.add_img_FBLB(e.properties.package_url, `skin_package_url_${i.toString()}.zip`)
+                                this.index++
+                            }
+                            if (e.properties.side_bg) {
+                                this.add_img_FBLB(e.properties.side_bg, `skin_side_bg_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.side_bg_bottom) {
+                                this.add_img_FBLB(e.properties.side_bg_bottom, `skin_side_bg_bottom_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.tail_bg) {
+                                this.add_img_FBLB(e.properties.tail_bg, `skin_tail_bg_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_channel) {
+                                this.add_img_FBLB(e.properties.tail_icon_channel, `skin_tail_icon_channel_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_dynamic) {
+                                this.add_img_FBLB(e.properties.tail_icon_dynamic, `skin_tail_icon_dynamic_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_main) {
+                                this.add_img_FBLB(e.properties.tail_icon_main, `skin_tail_icon_main_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_myself) {
+                                this.add_img_FBLB(e.properties.tail_icon_myself, `skin_tail_icon_myself_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_selected_channel) {
+                                this.add_img_FBLB(e.properties.tail_icon_selected_channel, `skin_tail_icon_selected_channel_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_selected_dynamic) {
+                                this.add_img_FBLB(e.properties.tail_icon_selected_dynamic, `skin_tail_icon_selected_dynamic_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_selected_main) {
+                                this.add_img_FBLB(e.properties.tail_icon_selected_main, `skin_tail_icon_selected_main_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_selected_myself) {
+                                this.add_img_FBLB(e.properties.tail_icon_selected_myself, `skin_tail_icon_selected_myself_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_selected_shop) {
+                                this.add_img_FBLB(e.properties.tail_icon_selected_shop, `skin_tail_icon_selected_shop_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.tail_icon_shop) {
+                                this.add_img_FBLB(e.properties.tail_icon_shop, `skin_tail_icon_shop_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.space_bg.length; i++) {
+                            const e = all_count.suit_items.space_bg[i]
+                            if (e.properties.fan_no_image) {
+                                this.add_img_FBLB(e.properties.fan_no_image, `spacebg_fan_no_image_${i.toString()}.png`)
+                                this.index++
+                            }
+                            if (e.properties.image1_landscape) {
+                                this.add_img_FBLB(e.properties.image1_landscape, `spacebg_image1_landscape_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image1_portrait) {
+                                this.add_img_FBLB(e.properties.image1_portrait, `spacebg_image1_portrait_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image2_landscape) {
+                                this.add_img_FBLB(e.properties.image2_landscape, `spacebg_image2_landscape_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image2_portrait) {
+                                this.add_img_FBLB(e.properties.image2_portrait, `spacebg_image2_portrait_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image3_landscape) {
+                                this.add_img_FBLB(e.properties.image3_landscape, `spacebg_image3_landscape_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image3_portrait) {
+                                this.add_img_FBLB(e.properties.image3_portrait, `spacebg_image3_portrait_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                        }
+                        for (let i = 0; i < all_count.suit_items.thumbup.length; i++) {
+                            const e = all_count.suit_items.thumbup[i]
+                            if (e.properties.image_ani) {
+                                this.add_img_FBLB(e.properties.image_ani, `thumbup_image_ani_${i.toString()}.bin`)
+                                this.index++
+                            }
+                            if (e.properties.image_ani_cut) {
+                                this.add_img_FBLB(e.properties.image_ani_cut, `thumbup_image_ani_cut_${i.toString()}.bin`)
+                                this.index++
+                            }
+                            if (e.properties.image_bright) {
+                                this.add_img_FBLB(e.properties.image_bright, `thumbup_image_bright_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image_dim) {
+                                this.add_img_FBLB(e.properties.image_dim, `thumbup_image_dim_${i.toString()}.jpg`)
+                                this.index++
+                            }
+                            if (e.properties.image_preview) {
+                                this.add_img_FBLB(e.properties.image_preview, `thumbup_image_preview_${i.toString()}.png`)
+                                this.index++
+                            }
+                        }
+                        if (all_count.fan_user.avatar) {
+                            this.add_img_FBLB(all_count.fan_user.avatar, `fan_user_${all_count.fan_user.mid.toString()}.png`)
+                            this.index++
+                        }
+                        this.all_count = this.index
                     }
-                    for (let i = 1; i <= z; i++) {
-                        setTimeout(() => {
-                            HTTPsend("https://api.bilibili.com/x/space/article?mid=" + this.uid + "&pn=" + i + "&ps=12&sort=publish_time", "GET", "", (result) => {
-                                lists.Set("正在分析第" + i.toString() + "页")
-                                let rdata = JSON_parse(result)
-                                if (rdata.code == 0) {
-                                    rdata.data.articles.forEach(element => {
-                                        cvlist.push({ url: "https://www.bilibili.com/read/cv" + element.id.toString(), id: element.id, banner: element.banner_url })
-                                        // this.index++
-                                    })
-                                } else {
-                                    Console_error(result)
-                                }
-                                i == z && setTimeout(() => { Console_log("加载完成，有" + cvlist.length.toString() + "个专栏。"); loadcvlist(); })
-                            })
-                        }, time)
-                        time += 450
-                    }
-                })
+                    break;
+                default:
+                    break;
             }
+            // if (Mode == 0) {
+            // } else if (Mode == 1) {
+            // } else if (Mode == 3) {
+            // } else if (Mode == 4) {
+            // }
         }
         load_img_detail(doc_id) {
             HTTPsend("https://api.vc.bilibili.com/link_draw/v1/doc/detail?doc_id=" + doc_id, "GET", "", (result) => {
@@ -815,56 +1105,86 @@
             Console_Devlog(indexA + "，" + this.imglist.length)
             if (indexA <= this.imglist.length) {
                 lists.Set("正在发送第" + indexA + "张图片。")
-                if (this.Mode == 0) {
-                    let url = this.imglist[this.indexA].url
-                    let doc_id = this.imglist[this.indexA].doc_id.toString()
-                    let cou = this.imglist[this.indexA].cou.toString()
-                    setTimeout(() => {
-                        addToAria([url], doc_id + "_" + cou + getType(url), "https://h.bilibili.com/" + doc_id, true, [], () => {
-                            // bug: 此处没法执行callback
-                        }, () => {
-                            lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
-                        })
-                        uFA.indexA++
-                        uFA.send_aria2()
-                    }, 5)
-                } else if (this.Mode == 1) {
-                    let url = this.imglist[this.indexA].url
-                    let aid = this.imglist[this.indexA].aid.toString()
-                    setTimeout(() => {
-                        addToAria([url], "av" + aid + getType(url), "https://space.bilibili.com/" + this.uid + "/video", true, [], () => {
-                            // bug: 此处没法执行callback
-                        }, () => {
-                            lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
-                        })
-                        uFA.indexA++
-                        uFA.send_aria2()
-                    }, 5)
-                } else if (this.Mode == 2) {
-                    let url = this.imglist[this.indexA].url
-                    let name = this.imglist[this.indexA].name
-                    setTimeout(() => {
-                        addToAria([url], name, "https://space.bilibili.com/" + this.uid + "/video", true, [], () => {
-                            // bug: 此处没法执行callback
-                        }, () => {
-                            lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
-                        })
-                        uFA.indexA++
-                        uFA.send_aria2()
-                    }, 5)
-                } else if (this.Mode == 4) {
-                    let url = this.imglist[this.indexA].url
-                    let doc_id = this.imglist[this.indexA].doc_id.toString()
-                    let cou = this.imglist[this.indexA].cou.toString()
-                    setTimeout(() => {
-                        addToAria([url], "cv" + doc_id + "_" + cou + getType(url), "https://www.bilibili.com/read/cv" + doc_id, true, [], () => {
-                            // bug: 此处没法执行callback
-                        }, () => {
-                            lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
-                        })
-                        uFA.indexA++
-                        uFA.send_aria2()
-                    }, 5)
+                switch (this.Mode) {
+                    case 0:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let doc_id = this.imglist[this.indexA].doc_id.toString()
+                            let cou = this.imglist[this.indexA].cou.toString()
+                            setTimeout(() => {
+                                addToAria([url], doc_id + "_" + cou + getType(url), "https://h.bilibili.com/" + doc_id, true, [], () => {
+                                    // bug: 此处没法执行callback
+                                }, () => {
+                                    lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
+                                })
+                                uFA.indexA++
+                                uFA.send_aria2()
+                            }, 5)
+                        }
+                        break;
+                    case 1:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let aid = this.imglist[this.indexA].aid.toString()
+                            setTimeout(() => {
+                                addToAria([url], "av" + aid + getType(url), "https://space.bilibili.com/" + this.uid + "/video", true, [], () => {
+                                    // bug: 此处没法执行callback
+                                }, () => {
+                                    lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
+                                })
+                                uFA.indexA++
+                                uFA.send_aria2()
+                            }, 5)
+                        }
+                        break;
+                    case 2:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let name = this.imglist[this.indexA].name
+                            setTimeout(() => {
+                                addToAria([url], name, "https://space.bilibili.com/" + this.uid + "/video", true, [], () => {
+                                    // bug: 此处没法执行callback
+                                }, () => {
+                                    lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
+                                })
+                                uFA.indexA++
+                                uFA.send_aria2()
+                            }, 5)
+                        }
+                        break;
+                    case 4:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let doc_id = this.imglist[this.indexA].doc_id.toString()
+                            let cou = this.imglist[this.indexA].cou.toString()
+                            setTimeout(() => {
+                                addToAria([url], "cv" + doc_id + "_" + cou + getType(url), "https://www.bilibili.com/read/cv" + doc_id, true, [], () => {
+                                    // bug: 此处没法执行callback
+                                }, () => {
+                                    lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
+                                })
+                                uFA.indexA++
+                                uFA.send_aria2()
+                            }, 5)
+                        }
+                        break;
+                    case 5:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let name = this.imglist[this.indexA].name
+                            setTimeout(() => {
+                                addToAria([url], name, "https://www.bilibili.com/h5/mall/suit/detail?navhide=1&id=" + this.uid.replace("suit_", "") + "&from=official", true, [], () => {
+                                    // bug: 此处没法执行callback
+                                }, () => {
+                                    lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
+                                })
+                                uFA.indexA++
+                                uFA.send_aria2()
+                            }, 5)
+                        }
+                        break;
+                    default:
+                        break;
                 }
             } else {
                 this.DownSend = false
@@ -873,123 +1193,170 @@
                 lists.BG("success")
             }
         }
-        send_blob() {
+        async send_blob() {
             this.DownSend = true
             let indexA = this.indexA
             indexA++
             if (indexA <= this.imglist.length) {
                 lists.Set("正在获取第" + indexA + "张图片。")
-                if (this.Mode == 0) {
-                    let url = this.imglist[this.indexA].url
-                    let doc_id = this.imglist[this.indexA].doc_id.toString()
-                    let cou = this.imglist[this.indexA].cou.toString()
-                    setTimeout(() => {
-                        loadToBlob(url, (blobFile) => {
-                            if (blobFile) {
-                                zip.file(doc_id + "_" + cou + getType(url), blobFile, { binary: true })
-                                this.indexA++
-                                uFA.send_blob()
-                            } else {
-                                this.HaveDownFail = true
-                                Console_error("相簿 https://h.bilibili.com/" + doc_id + " 下的第 " + cou + " 张图片下载失败了。。。")
-                                this.indexA++
-                                uFA.send_blob()
-                            }
-                        })
-                    }, 100)
-                } else if (this.Mode == 1) {
-                    let url = this.imglist[this.indexA].url
-                    let aid = this.imglist[this.indexA].aid.toString()
-                    setTimeout(() => {
-                        loadToBlob(url, (blobFile) => {
-                            if (blobFile) {
-                                zip.file("av" + aid + getType(url), blobFile, { binary: true })
-                                this.indexA++
-                                uFA.send_blob()
-                            } else {
-                                this.HaveDownFail = true
-                                Console_error("视频 https://www.bilibili.com/video/av" + aid + " 的封面下载失败了。。。")
-                                this.indexA++
-                                uFA.send_blob()
-                            }
-                        })
-                    }, 100)
-                } else if (this.Mode == 2 || this.Mode == 3) {
-                    let url = this.imglist[this.indexA].url
-                    let name = this.imglist[this.indexA].name
-                    setTimeout(() => {
-                        loadToBlob(url, (blobFile) => {
-                            if (blobFile) {
-                                zip.file(name, blobFile, { binary: true })
-                                this.indexA++
-                                uFA.send_blob()
-                            } else {
-                                this.HaveDownFail = true
-                                Console_error("图片 " + url + " 下载失败了。。。")
-                                this.indexA++
-                                uFA.send_blob()
-                            }
-                        })
-                    }, 100)
-                } else if (this.Mode == 4) {
-                    let url = this.imglist[this.indexA].url
-                    let doc_id = this.imglist[this.indexA].doc_id.toString()
-                    let cou = this.imglist[this.indexA].cou.toString()
-                    setTimeout(() => {
-                        loadToBlob(url, (blobFile) => {
-                            if (blobFile) {
-                                zip.file("cv" + doc_id + "_" + cou + getType(url), blobFile, { binary: true })
-                                this.indexA++
-                                uFA.send_blob()
-                            } else {
-                                this.HaveDownFail = true
-                                Console_error("专栏 https://www.bilibili.com/read/cv" + doc_id + " 下的第 " + cou + " 张图片下载失败了。。。")
-                                this.indexA++
-                                uFA.send_blob()
-                            }
-                        })
-                    }, 100)
+                await RList.Push()
+                switch (this.Mode) {
+                    case 0:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let doc_id = this.imglist[this.indexA].doc_id.toString()
+                            let cou = this.imglist[this.indexA].cou.toString()
+                            setTimeout(() => {
+                                loadToBlob(url, (blobFile) => {
+                                    if (blobFile) {
+                                        zip.file(doc_id + "_" + cou + getType(url), blobFile, { binary: true })
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    } else {
+                                        this.HaveDownFail = true
+                                        Console_error("相簿 https://h.bilibili.com/" + doc_id + " 下的第 " + cou + " 张图片下载失败了。。。")
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    }
+                                })
+                            }, 100)
+                        }
+                        break;
+                    case 1:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let aid = this.imglist[this.indexA].aid.toString()
+                            setTimeout(() => {
+                                loadToBlob(url, (blobFile) => {
+                                    if (blobFile) {
+                                        zip.file("av" + aid + getType(url), blobFile, { binary: true })
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    } else {
+                                        this.HaveDownFail = true
+                                        Console_error("视频 https://www.bilibili.com/video/av" + aid + " 的封面下载失败了。。。")
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    }
+                                })
+                            }, 100)
+                        }
+                        break;
+                    case 2:
+                    case 3:
+                    case 5:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let name = this.imglist[this.indexA].name
+                            setTimeout(() => {
+                                loadToBlob(url, (blobFile) => {
+                                    if (blobFile) {
+                                        zip.file(name, blobFile, { binary: true })
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    } else {
+                                        this.HaveDownFail = true
+                                        Console_error("图片 " + url + " 下载失败了。。。")
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    }
+                                })
+                            }, 100)
+                        }
+                        break;
+                    case 4:
+                        {
+                            let url = this.imglist[this.indexA].url
+                            let doc_id = this.imglist[this.indexA].doc_id.toString()
+                            let cou = this.imglist[this.indexA].cou.toString()
+                            setTimeout(() => {
+                                loadToBlob(url, (blobFile) => {
+                                    if (blobFile) {
+                                        zip.file("cv" + doc_id + "_" + cou + getType(url), blobFile, { binary: true })
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    } else {
+                                        this.HaveDownFail = true
+                                        Console_error("专栏 https://www.bilibili.com/read/cv" + doc_id + " 下的第 " + cou + " 张图片下载失败了。。。")
+                                        this.indexA++
+                                        uFA.send_blob()
+                                    }
+                                })
+                            }, 100)
+                        }
+                        break;
+                    // case 5:
+
+                    //     break;
+                    default:
+                        break;
                 }
             } else {
-                HTTPsend("https://api.bilibili.com/x/space/acc/info?mid=" + uFA.uid, "GET", "", (result) => {
-                    let rdata = JSON_parse(result)
+                let result = ""
+                let rdata = {}
+                let name = ""
+                if (uFA.Mode != 5 || uFA.Mode != 3) {
+                    result = await HTTPsend("https://api.bilibili.com/x/space/acc/info?mid=" + uFA.uid, "GET")
+                    rdata = JSON_parse(result)
                     if (rdata.code == 0) {
                         this.name = rdata.data.name
-                        let name = this.name
-                        zip.generateAsync({ type: "blob" }).then((content) => {
-                            // see FileSaver.js
-                            let zipname = name + "_" + this.uid
-                            if (this.Mode == 0) {
+                        name = this.name
+                    }
+                }
+                zip.generateAsync({ type: "blob" }).then((content) => {
+                    // see FileSaver.js
+                    let zipname = name + "_" + this.uid
+                    switch (this.Mode) {
+                        case 0:
+                            {
                                 zipname += "_相册"
-                            } else if (this.Mode == 1) {
+                            }
+                            break;
+                        case 1:
+                            {
                                 zipname += "_视频封面"
-                            } else if (this.Mode == 2) {
+                            }
+                            break;
+                        case 2:
+                            {
                                 zipname += "_头图及壁纸"
-                            } else if (this.Mode == 3) {
+                            }
+                            break;
+                        case 3:
+                            {
                                 zipname += "_头衔"
-                            } else if (this.Mode == 4) {
+                            }
+                            break;
+                        case 4:
+                            {
                                 zipname += "_专栏"
                             }
-                            lists.Set("正在打包成 " + zipname + ".zip 中")
-                            let a = document.createElement('a')
-                            a.innerHTML = zipname
-                            a.download = zipname
-                            a.href = URL.createObjectURL(content)
-                            a.addEventListener("click", function () { document.body.removeChild(a) })
-                            document.body.appendChild(a)
-                            a.click()
-                            this.DownSend = false
-                            MBBtn(true)
-                            if (!this.HaveDownFail) {
-                                lists.Set("打包 " + zipname + ".zip 完成。")
-                                lists.BG("success")
-                            } else {
-                                lists.Set("打包 " + zipname + ".zip 完成，但有些文件下载失败了，详细请查看控制台orz")
-                                lists.BG("error")
+                            break;
+                        case 5:
+                            {
+                                zipname += "_主题"
                             }
-                        })
+                            break;
+
+                        default:
+                            break;
+                    }
+                    lists.Set("正在打包成 " + zipname + ".zip 中")
+                    let a = document.createElement('a')
+                    a.innerHTML = zipname
+                    a.download = zipname
+                    a.href = URL.createObjectURL(content)
+                    a.addEventListener("click", function () { document.body.removeChild(a) })
+                    document.body.appendChild(a)
+                    a.click()
+                    this.DownSend = false
+                    MBBtn(true)
+                    if (!this.HaveDownFail) {
+                        lists.Set("打包 " + zipname + ".zip 完成。")
+                        lists.BG("success")
                     } else {
-                        Console_error(result)
+                        lists.Set("打包 " + zipname + ".zip 完成，但有些文件下载失败了，详细请查看控制台orz")
+                        lists.BG("error")
                     }
                 })
             }
