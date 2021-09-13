@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aria2 RPC Edit
 // @namespace    Sonic853
-// @version      0.2
+// @version      0.3
 // @description  Aria2 RPC Library 重写，参考自 https://greasyfork.org/scripts/5672-aria2-rpc
 // @author       Sonic853
 // @original-author moe.jixun
@@ -20,8 +20,41 @@ var Aria2AUTH;
 })(Aria2AUTH || (Aria2AUTH = {}));
 class Aria2BATCH {
     parent;
-    constructor(obj) {
+    data = [];
+    onSuccess;
+    onFail;
+    addRaw(fn, params) {
+        this.data.push({
+            method: `aria2.${fn}`,
+            params
+        });
+    }
+    add(fn, ...args) {
+        if (this.parent[fn] === undefined)
+            throw new Error(`Unknown function: ${fn}, please check if you had a typo.`);
+        return this.addRaw(fn, args);
+    }
+    async send() {
+        let ret = await this.parent.send(true, this.data, this.onSuccess, this.onFail);
+        this.reset();
+        return ret;
+    }
+    getActions() {
+        return this.data.slice();
+    }
+    setActions(actions) {
+        if (!actions || !actions.map)
+            return;
+        this.data = actions;
+    }
+    reset() {
+        this.onSuccess = this.onFail = null;
+        this.data = [];
+    }
+    constructor(obj, cbSuccess, cbFail) {
         this.parent = obj;
+        this.onSuccess = cbSuccess;
+        this.onFail = cbFail;
     }
 }
 // var GM_fetch = async (input: RequestInfo, init?: RequestInit): Promise<any> => {
@@ -32,7 +65,7 @@ class Aria2BATCH {
 //             }
 //             else {
 //             }
-//         });
+//         })
 //     }else{
 //         console.warn([
 //             'Warning: You are now using an simple implementation of GM_xmlhttpRequest',
@@ -100,7 +133,7 @@ var Aria2 = class AriaBase {
         }
         return await this.doRequest.send(payload);
     }
-    Batch = new Aria2BATCH(this);
+    BATCH = new Aria2BATCH(this);
     merge(...args) {
         let base = args[0];
         let _isObject = function (obj) {

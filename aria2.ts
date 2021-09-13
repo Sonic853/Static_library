@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aria2 RPC Edit
 // @namespace    Sonic853
-// @version      0.2
+// @version      0.3
 // @description  Aria2 RPC Library 重写，参考自 https://greasyfork.org/scripts/5672-aria2-rpc
 // @author       Sonic853
 // @original-author moe.jixun
@@ -72,8 +72,39 @@ enum Aria2AUTH {
 }
 class Aria2BATCH {
     parent: AriaBase
-    constructor(obj: AriaBase) {
+    data: any[] = []
+    onSuccess: Function
+    onFail: Function
+    addRaw(fn: string, params: any[]) {
+        this.data.push({
+            method: `aria2.${fn}`,
+            params
+        })
+    }
+    add(fn: string, ...args: any[]) {
+        if (this.parent[fn] === undefined) throw new Error(`Unknown function: ${fn}, please check if you had a typo.`)
+        return this.addRaw(fn, args)
+    }
+    async send() {
+        let ret = await this.parent.send(true, this.data, this.onSuccess, this.onFail)
+        this.reset()
+        return ret
+    }
+    getActions() {
+        return this.data.slice()
+    }
+    setActions(actions: any[]) {
+        if (!actions || !actions.map) return
+        this.data = actions
+    }
+    reset() {
+        this.onSuccess = this.onFail = null
+        this.data = []
+    }
+    constructor(obj: AriaBase, cbSuccess?: Function, cbFail?: Function) {
         this.parent = obj
+        this.onSuccess = cbSuccess
+        this.onFail = cbFail
     }
 }
 interface Aria2payload {
@@ -101,6 +132,10 @@ interface XhrResponse {
     responseText: string,
     responseXML?: Document | null
 }
+interface Aria2Data {
+    method: string,
+    params: any
+}
 // var GM_fetch = async (input: RequestInfo, init?: RequestInit): Promise<any> => {
 //     // Promise<Response>
 //     if (typeof GM_xmlhttpRequest !== 'undefined') {
@@ -111,7 +146,7 @@ interface XhrResponse {
 //             else {
 
 //             }
-//         });
+//         })
 //     }else{
 //         console.warn([
 //             'Warning: You are now using an simple implementation of GM_xmlhttpRequest',
@@ -148,7 +183,7 @@ var Aria2 = class AriaBase {
                 if (repData.readyState !== 4) {
                     cbError && cbError(repData, false)
                 } else {
-                    cbSuccess && cbSuccess(repData);
+                    cbSuccess && cbSuccess(repData)
                 }
             },
             onerror: cbError ? cbError(null, false) : null
@@ -162,14 +197,14 @@ var Aria2 = class AriaBase {
                 let sToken = `token:${this.options.auth.pass}`
                 if (bIsDataBatch) {
                     for (let i = 0; i < payload.data.length; i++) {
-                        payload.data[i].params.splice(0, 0, sToken);
+                        payload.data[i].params.splice(0, 0, sToken)
                     }
                 } else {
                     if (!payload.data.params)
-                        payload.data.params = [];
-                    payload.data.params.splice(0, 0, sToken);
+                        payload.data.params = []
+                    payload.data.params.splice(0, 0, sToken)
                 }
-                break;
+                break
             }
             case Aria2AUTH.noAuth:
             default: {
@@ -178,12 +213,12 @@ var Aria2 = class AriaBase {
         }
         return await this.doRequest.send(payload)
     }
-    Batch = new Aria2BATCH(this)
+    BATCH = new Aria2BATCH(this)
     private merge(...args) {
         let base = args[0]
         let _isObject = function (obj) {
-            return obj instanceof Object;
-        };
+            return obj instanceof Object
+        }
         let _merge = function (...args) {
             let argL = args.length
             for (let i = 1; i < argL; i++) {
@@ -235,7 +270,7 @@ var Aria2 = class AriaBase {
                                 onerror && onerror()
                                 reject()
                             }
-                        });
+                        })
                     })
                 }
                 constructor(obj: AriaBase) {
@@ -254,7 +289,7 @@ var Aria2 = class AriaBase {
                 parent: AriaBase
                 async send({ url, method, data, headers, onload, onerror }: Aria2payload): Promise<XhrResponse> {
                     try {
-                        let response = await fetch(url,{
+                        let response = await fetch(url, {
                             method,
                             body: typeof data === 'string' ? data : JSON.stringify(data),
                             headers
@@ -262,7 +297,7 @@ var Aria2 = class AriaBase {
                         let responseText = await response.text()
                         onload && onload(responseText)
                         return {
-                            readyState:4,
+                            readyState: 4,
                             responseHeaders: response.headers,
                             status: response.status,
                             statusText: response.statusText,
@@ -305,7 +340,7 @@ var Aria2 = class AriaBase {
                     return await this.send(false, {
                         method: `aria2.${sMethod}`,
                         params: args
-                    }, cbSuccess, cbError);
+                    }, cbSuccess, cbError)
                 }
             })
         }
