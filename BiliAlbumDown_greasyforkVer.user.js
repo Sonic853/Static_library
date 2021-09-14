@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.3.1
+// @version      1.3.2
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
 // @include      https://space.bilibili.com/*
 // @include      https://www.bilibili.com/h5/mall/suit/detail*
 // @require      https://cdn.bootcdn.net/ajax/libs/jszip/3.5.0/jszip.min.js
-// @require      https://greasyfork.org/scripts/405376-filesaver-html5/code/FileSaver(html5).js?version=816426
+// @require      https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
 // @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit-use-gm-xmlhttprequest/code/Aria2%20RPC%20Edit%20(use%20GM_xmlhttpRequest).js?version=801673
 // @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
 // @run-at       document-end
@@ -1342,13 +1342,14 @@
                             break;
                     }
                     lists.Set("正在打包成 " + zipname + ".zip 中")
-                    let a = document.createElement('a')
-                    a.innerHTML = zipname
-                    a.download = zipname
-                    a.href = URL.createObjectURL(content)
-                    a.addEventListener("click", function () { document.body.removeChild(a) })
-                    document.body.appendChild(a)
-                    a.click()
+                    saveAs(content, zipname + ".zip")
+                    // let a = document.createElement('a')
+                    // a.innerHTML = zipname
+                    // a.download = zipname
+                    // a.href = URL.createObjectURL(content)
+                    // a.addEventListener("click", function () { document.body.removeChild(a) })
+                    // document.body.appendChild(a)
+                    // a.click()
                     this.DownSend = false
                     MBBtn(true)
                     if (!this.HaveDownFail) {
