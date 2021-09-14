@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.3.1
+// @version      1.3.2
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -1342,13 +1342,14 @@
                             break;
                     }
                     lists.Set("正在打包成 " + zipname + ".zip 中")
-                    let a = document.createElement('a')
-                    a.innerHTML = zipname
-                    a.download = zipname
-                    a.href = URL.createObjectURL(content)
-                    a.addEventListener("click", function () { document.body.removeChild(a) })
-                    document.body.appendChild(a)
-                    a.click()
+                    saveAs(content, zipname + ".zip")
+                    // let a = document.createElement('a')
+                    // a.innerHTML = zipname
+                    // a.download = zipname
+                    // a.href = URL.createObjectURL(content)
+                    // a.addEventListener("click", function () { document.body.removeChild(a) })
+                    // document.body.appendChild(a)
+                    // a.click()
                     this.DownSend = false
                     MBBtn(true)
                     if (!this.HaveDownFail) {
