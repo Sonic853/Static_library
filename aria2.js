@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Aria2 RPC Edit
 // @namespace    Sonic853
-// @version      0.3
+// @version      0.3.3
 // @description  Aria2 RPC Library 重写，参考自 https://greasyfork.org/scripts/5672-aria2-rpc
 // @author       Sonic853
 // @original-author moe.jixun
@@ -10,6 +10,7 @@
 // @license      MIT
 // @grant        GM_xmlhttpRequest
 // ==/UserScript==
+// Source code: https://github.com/Sonic853/Static_library/blob/master/aria2.ts
 // tsc .\aria2.ts --target esnext
 // Public Class Aria2 ( options )
 var Aria2AUTH;
@@ -97,11 +98,17 @@ var Aria2 = class AriaBase {
                 ? data.map(e => { return this.merge({}, srcTaskObj, e); })
                 : this.merge({}, srcTaskObj, data),
             onload: r => {
-                let repData = JSON.parse(r.responseText);
-                if (repData.readyState !== 4) {
-                    cbError && cbError(repData, false);
+                if (r.readyState !== 4) {
+                    cbError && cbError(null, false);
                 }
                 else {
+                    let repData;
+                    try {
+                        repData = JSON.parse(r.responseText);
+                    }
+                    catch (error) {
+                        repData = r.responseText;
+                    }
                     cbSuccess && cbSuccess(repData);
                 }
             },
@@ -188,7 +195,7 @@ var Aria2 = class AriaBase {
                             data: typeof data === 'string' ? data : JSON.stringify(data),
                             headers,
                             onload(r) {
-                                onload && onload(r.responseText);
+                                onload && onload(r);
                                 resolve(r);
                             },
                             onerror() {
