@@ -8,7 +8,7 @@
 // @include      https://www.bilibili.com/h5/mall/suit/detail*
 // @require      https://cdn.bootcdn.net/ajax/libs/jszip/3.6.0/jszip.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
-// @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit/code/Aria2%20RPC%20Edit.js?version=970166
+// @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit-use-gm-xmlhttprequest/code/Aria2%20RPC%20Edit%20(use%20GM_xmlhttpRequest).js?version=953446
 // @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
 // @run-at       document-end
 // @license      MIT License
