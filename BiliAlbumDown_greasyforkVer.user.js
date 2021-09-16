@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.3.6
+// @version      1.3.7
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -8,7 +8,7 @@
 // @include      https://www.bilibili.com/h5/mall/suit/detail*
 // @require      https://cdn.bootcdn.net/ajax/libs/jszip/3.6.0/jszip.min.js
 // @require      https://cdn.bootcdn.net/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js
-// @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit/code/Aria2%20RPC%20Edit.js?version=971049
+// @require      https://greasyfork.org/scripts/402652-aria2-rpc-edit/code/Aria2%20RPC%20Edit.js?version=971052
 // @resource     BiliUI-style  https://cdn.jsdelivr.net/gh/Sonic853/Static_library/BiliUI-style.min.css?t=20200506001
 // @run-at       document-end
 // @license      MIT License
