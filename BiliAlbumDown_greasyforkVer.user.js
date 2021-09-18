@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.3.7
+// @version      1.3.8
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -390,6 +390,9 @@
         "636d66a97d5f55099a9d8d6813558d6d4c95fd61.jpg",
         "2388faed3728f3396052273ad4c3c9af21c411fc.jpg",
         "785922a49980e1aa3239249c8360909488940d7d.jpg"
+    ]
+    let CV_Default = [
+        "4adb9255ada5b97061e610b682b8636764fe50ed.png"
     ]
     let List = class {
         Get(obj) {
@@ -781,7 +784,10 @@
                                         Console_Devlog(rs)
                                         if(rs!==null) rs.forEach(ce => {
                                             // if (ce.startsWith("//")) {
-                                            this.add_img("https://" + ce.split("//")[1].slice(0, -1), e.id, cou)
+                                            if( CV_Default.indexOf(getFileName(ce).replace('"','')) == -1 ){
+                                                this.add_img("https://" + ce.split("//")[1].slice(0, -1), e.id, cou)
+                                                cou++
+                                            }
                                             // } else if (ce.startsWith("http:") || ce.startsWith("https:")) {
                                             //     this.add_img(ce, e.id, cou)
                                             // } else {
@@ -1127,7 +1133,7 @@
                             let url = this.imglist[this.indexA].url
                             let aid = this.imglist[this.indexA].aid.toString()
                             setTimeout(() => {
-                                addToAria([url], "av" + aid + getType(url), "https://space.bilibili.com/" + this.uid + "/video", true, [], () => {
+                                addToAria([url], "av" + aid + "_" + getFileName(url), "https://space.bilibili.com/" + this.uid + "/video", true, [], () => {
                                     // bug: 此处没法执行callback
                                 }, () => {
                                     lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
@@ -1158,7 +1164,7 @@
                             let doc_id = this.imglist[this.indexA].doc_id.toString()
                             let cou = this.imglist[this.indexA].cou.toString()
                             setTimeout(() => {
-                                addToAria([url], "cv" + doc_id + "_" + cou + getType(url), "https://www.bilibili.com/read/cv" + doc_id, true, [], () => {
+                                addToAria([url], "cv" + doc_id + "_" + cou + "_" + getFileName(url), "https://www.bilibili.com/read/cv" + doc_id, true, [], () => {
                                     // bug: 此处没法执行callback
                                 }, () => {
                                     lists.Set("发送到Aria2失败了，请检查相关设置吧。。。。")
@@ -1229,7 +1235,7 @@
                             setTimeout(() => {
                                 loadToBlob(url, (blobFile) => {
                                     if (blobFile) {
-                                        zip.file("av" + aid + getType(url), blobFile, { binary: true })
+                                        zip.file("av" + aid + "_" + getFileName(url), blobFile, { binary: true })
                                         this.indexA++
                                         uFA.send_blob()
                                     } else {
@@ -1272,7 +1278,7 @@
                             setTimeout(() => {
                                 loadToBlob(url, (blobFile) => {
                                     if (blobFile) {
-                                        zip.file("cv" + doc_id + "_" + cou + getType(url), blobFile, { binary: true })
+                                        zip.file("cv" + doc_id + "_" + cou + "_" + getFileName(url), blobFile, { binary: true })
                                         this.indexA++
                                         uFA.send_blob()
                                     } else {
