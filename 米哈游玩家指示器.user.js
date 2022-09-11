@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name             米哈游玩家指示器
 // @namespace        http://853lab.com/
-// @version          0.5
+// @version          0.6
 // @description      B站评论区自动标注米哈游玩家，依据是动态里是否有米哈游游戏的相关内容。灵感来自于原神玩家指示器。
 // @author           Sonic853
 // @match            https://www.bilibili.com/video/*
@@ -580,8 +580,9 @@
                       }
                     }
                     if (item.orig.modules.module_dynamic.major != null) {
-                      if (this.checkKeyword(item.orig.modules.module_dynamic.major.archive.title)
-                      || this.checkKeyword(item.orig.modules.module_dynamic.major.archive.desc)) {
+                      Console_Devlog(item.orig.modules.module_dynamic.major)
+                      if (this.checkKeyword(item.orig.modules.module_dynamic.major?.archive?.title)
+                      || this.checkKeyword(item.orig.modules.module_dynamic.major?.archive?.desc)) {
                         return true
                       }
                     }
