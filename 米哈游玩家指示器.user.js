@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name             米哈游玩家指示器
 // @namespace        http://853lab.com/
-// @version          0.4
+// @version          0.5
 // @description      B站评论区自动标注米哈游玩家，依据是动态里是否有米哈游游戏的相关内容。灵感来自于原神玩家指示器。
 // @author           Sonic853
 // @match            https://www.bilibili.com/video/*
@@ -203,7 +203,7 @@
      * }[]}
      */
     list = []
-    // 原神 关键词 有待改进，因为会出现 还原神作 的情况
+    // 原神 关键词 有待改进，因为会出现 还原神作 等误判断情况
     /**
      * 关键词检查
      */
@@ -227,6 +227,9 @@
       "绝区零",
       "米游社",
       // "鹿鸣",
+    ]
+    soeWithKeywords = [
+      "原神",
     ]
     /**
      * 米哈游以及涉及米哈游的帐号
@@ -544,10 +547,8 @@
       if (item == undefined) return false
       // for (let item of items) {
       if (item.modules.module_dynamic.desc != null) {
-        for (let keyword of this.keywords) {
-          if (item.modules.module_dynamic.desc.text.includes(keyword)) {
-            return true
-          }
+        if (this.checkKeyword(item.modules.module_dynamic.desc.text)) {
+          return true
         }
       }
       switch (item.type) {
@@ -565,10 +566,8 @@
                 case "DYNAMIC_TYPE_WORD":
                   {
                     if (item.orig.modules.module_dynamic.desc != null) {
-                      for (let keyword of this.keywords) {
-                        if (item.orig.modules.module_dynamic.desc.text.includes(keyword)) {
-                          return true
-                        }
+                      if (this.checkKeyword(item.orig.modules.module_dynamic.desc.text)) {
+                        return true
                       }
                     }
                   }
@@ -576,20 +575,14 @@
                 case "DYNAMIC_TYPE_AV":
                   {
                     if (item.orig.modules.module_dynamic.desc != null) {
-                      for (let keyword of this.keywords) {
-                        if (item.orig.modules.module_dynamic.desc.text.includes(keyword)) {
-                          return true
-                        }
+                      if (this.checkKeyword(item.orig.modules.module_dynamic.desc.text)) {
+                        return true
                       }
                     }
                     if (item.orig.modules.module_dynamic.major != null) {
-                      for (let keyword of this.keywords) {
-                        if (item.orig.modules.module_dynamic.major.archive.title.includes(keyword)) {
-                          return true
-                        }
-                        if (item.orig.modules.module_dynamic.major.archive.desc.includes(keyword)) {
-                          return true
-                        }
+                      if (this.checkKeyword(item.orig.modules.module_dynamic.major.archive.title)
+                      || this.checkKeyword(item.orig.modules.module_dynamic.major.archive.desc)) {
+                        return true
                       }
                     }
                   }
@@ -605,13 +598,9 @@
         case "DYNAMIC_TYPE_AV":
           {
             if (item.modules.module_dynamic.major != null) {
-              for (let keyword of this.keywords) {
-                if (item.modules.module_dynamic.major.archive.title.includes(keyword)) {
-                  return true
-                }
-                if (item.modules.module_dynamic.major.archive.desc.includes(keyword)) {
-                  return true
-                }
+              if (this.checkKeyword(item.modules.module_dynamic.major.archive.title)
+              || this.checkKeyword(item.modules.module_dynamic.major.archive.desc)) {
+                return true
               }
             }
           }
@@ -625,6 +614,21 @@
           break
       }
       // }
+      return false
+    }
+    checkKeyword(text) {
+      if (text != null) {
+        for (let keyword of this.keywords) {
+          if (text.includes(keyword)) {
+            return true
+          }
+        }
+        for (let keyword of this.soeWithKeywords) {
+          if (text.startsWith(keyword) || text.endsWith(keyword)) {
+            return true
+          }
+        }
+      }
       return false
     }
     async checkUser() {
@@ -728,7 +732,7 @@
     Console_Devlog(`[${NAME}][${D()}]: `, "callback", mutationList)
     let list = checker.getUserList()
     for (let item of list) {
-      if (!checker.list.some(e => e.uid == item.uid)) {
+      if (!checker.list.some(e => e.dom == item.dom)) {
         checker.list.push(item)
       }
     }
@@ -777,7 +781,7 @@
   // 先获取一次列表
   let list = checker.getUserList()
   for (let item of list) {
-    if (!checker.list.some(e => e.uid == item.uid)) {
+    if (!checker.list.some(e => e.dom == item.dom)) {
       checker.list.push(item)
     }
   }
