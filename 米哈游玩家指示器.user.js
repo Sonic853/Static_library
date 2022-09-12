@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name             米哈游玩家指示器
+// @name             B站玩家指示器
 // @namespace        http://853lab.com/
-// @version          0.6
-// @description      B站评论区自动标注米哈游玩家，依据是动态里是否有米哈游游戏的相关内容。灵感来自于原神玩家指示器。
+// @version          1.0
+// @description      B站评论区自动标注玩家，依据是动态里是否有游戏的相关内容。灵感来自于原神玩家指示器。
 // @author           Sonic853
 // @match            https://www.bilibili.com/video/*
 // @icon             https://static.hdslb.com/images/favicon.ico
@@ -153,8 +153,8 @@
       this.data = this.load()
     }
     load() {
-      Console_log("正在加载数据")
-      const defaultData = "{\"unknown\":[],\"miHoYo\":[],\"no_miHoYo\":[]}"
+      console.log(`[${NAME}][${D()}]: `, "正在加载数据")
+      const defaultData = "{\"unknown\":[],\"miHoYo\":[],\"none_Player\":[]}"
       if (typeof GM_getValue !== 'undefined') {
         let gdata = GM_getValue(localItem, JSON.parse(defaultData))
         return gdata
@@ -164,7 +164,7 @@
       }
     }
     save(d) {
-      Console_log("正在保存数据")
+      console.log(`[${NAME}][${D()}]: `, "正在保存数据")
       d === undefined ? (d = this.data) : (this.data = d)
       typeof GM_getValue != 'undefined' ? GM_setValue(localItem, d) : localStorage.setItem(localItem, JSON.stringify(d))
       return this
@@ -175,22 +175,26 @@
 
   GM_registerMenuCommand("清空插件所有数据", () => {
     if (!confirm("确定要清空数据吗？")) return
-    bLab8A.data.miHoYo = []
-    bLab8A.data.no_miHoYo = []
+    bLab8A.data = JSON.parse("{\"unknown\":[],\"miHoYo\":[],\"none_Player\":[]}")
     bLab8A.save()
-    Console_log("数据已清空")
+    console.log(`[${NAME}][${D()}]: `, "数据已清空")
   })
-  GM_registerMenuCommand("清空插件里的米哈游玩家数据", () => {
+  GM_registerMenuCommand("清空插件里的玩家数据", () => {
     if (!confirm("确定要清空数据吗？")) return
-    bLab8A.data.miHoYo = []
+    // 除了 none_Player ，其他都清空
+    for (let key in bLab8A.data) {
+      if (key != "none_Player") {
+        bLab8A.data[key] = []
+      }
+    }
     bLab8A.save()
-    Console_log("数据已清空")
+    console.log(`[${NAME}][${D()}]: `, "数据已清空")
   })
-  GM_registerMenuCommand("清空插件里的非米哈游玩家数据", () => {
+  GM_registerMenuCommand("清空插件里的非玩家数据", () => {
     if (!confirm("确定要清空数据吗？")) return
-    bLab8A.data.no_miHoYo = []
+    bLab8A.data.none_Player = []
     bLab8A.save()
-    Console_log("数据已清空")
+    console.log(`[${NAME}][${D()}]: `, "数据已清空")
   })
 
   class Checker {
@@ -203,55 +207,125 @@
      * }[]}
      */
     list = []
-    // 原神 关键词 有待改进，因为会出现 还原神作 等误判断情况
     /**
-     * 关键词检查
+     * @type {{
+     *  keywords: string[],
+     *  soeWithKeywords: string[],
+     *  uids: string[],
+     *  games: string[],
+     *  tag: string,
+     *  type: string
+     * }[]}
      */
-    keywords = [
-      "玩原神",
-      "原神玩家",
-      "#原神#",
-      "【原神",
-      "《原神",
-      "[原神",
-      "米哈游",
-      "崩坏三",
-      "崩坏3",
-      "崩坏学园",
-      "崩坏学院",
-      "miHoYo",
-      "崩坏星穹铁道",
-      "崩坏:星穹铁道",
-      "崩坏：星穹铁道",
-      "未定事件簿",
-      "绝区零",
-      "米游社",
-      // "鹿鸣",
+    KeywordChecklist = [
+      {
+        keywords: [
+          "玩原神",
+          "原神玩家",
+          "#原神#",
+          "【原神",
+          "《原神",
+          "[原神",
+          "米哈游",
+          "崩坏三",
+          "崩坏3",
+          "崩坏学园",
+          "崩坏学院",
+          "miHoYo",
+          "崩坏星穹铁道",
+          "崩坏:星穹铁道",
+          "崩坏：星穹铁道",
+          "未定事件簿",
+          "绝区零",
+          "米游社",
+          // "鹿鸣",
+        ],
+        soeWithKeywords: [
+          "原神",
+        ],
+        uids: [
+          // 崩坏3
+          "256667467",
+          // 米哈游miHoYo
+          "318432901",
+          // 崩坏学园2-灵依娘desu
+          "133934",
+          // 崩坏3第一偶像爱酱
+          "27534330",
+          // 崩坏3情报姬
+          "358367842",
+          // 崩坏星穹铁道
+          "1340190821",
+          // 原神
+          "401742377",
+          // 米哈游崩坏3客服娘
+          "33307860",
+          "52957002",
+          // 米游姬
+          "510189715",
+          // yoyo鹿鸣_Lumi
+          "488836173",
+          // 绝区零
+          "1636034895",
+          // 未定事件簿
+          "436175352",
+        ],
+        games: [
+          "原神",
+          "崩坏3",
+          "崩坏学园2",
+          "崩坏：星穹铁道",
+          "绝区零",
+        ],
+        tag: "[米哈游玩家]",
+        icon: "https://i1.hdslb.com/bfs/face/fda1b06144d41092a9ffb9a687f99bad078e7395.jpg",
+        color: "#00abf1",
+        type: "miHoYo",
+      },
+      {
+        keywords: [
+          "玩原神",
+          "原神玩家",
+          "#原神#",
+          "【原神",
+          "《原神",
+          "[原神",
+        ],
+        soeWithKeywords: [
+          "原神",
+        ],
+        uids: [
+          // 原神
+          "401742377",
+        ],
+        games: [
+          "原神",
+        ],
+        tag: "[原神玩家]",
+        icon: "https://i2.hdslb.com/bfs/face/d2a95376140fb1e5efbcbed70ef62891a3e5284f.jpg",
+        color: "#ff0000",
+        type: "Genshin",
+      },
+      // {
+      //   keywords: [
+      //     "王者荣耀",
+      //   ],
+      //   soeWithKeywords: [],
+      //   uids: [
+      //     "57863910",
+      //     "392836434",
+      //   ],
+      //   games: [
+      //     "王者荣耀",
+      //   ],
+      //   tag: "[王者荣耀玩家]",
+      //   icon: "https://i2.hdslb.com/bfs/face/effbafff589a27f02148d15bca7e97031a31d772.jpg",
+      //   color: "#79c7e7",
+      //   type: "HOK",
+      // },
     ]
-    soeWithKeywords = [
-      "原神",
-    ]
-    /**
-     * 米哈游以及涉及米哈游的帐号
-     */
-    uids = [
-      "256667467",
-      "318432901",
-      "133934",
-      "27534330",
-      "358367842",
-      "1340190821",
-      "401742377",
-      "33307860",
-      "52957002",
-      "510189715",
-      "488836173",
-      "1636034895",
-      "1340190821",
-      "436175352",
-    ]
-    tag = "[米哈游玩家]"
     dynamicURL = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
+    lastplaygameURL = "https://api.bilibili.com/x/space/lastplaygame"
     get is_new() {
       return document.querySelectorAll(".reply-list").length != 0
     }
@@ -433,6 +507,32 @@
         offset: data.data.offset,
       }
     }
+    async getUserLastPlayGame(uid) {
+      /**
+       * @type {{
+       * code: number,
+       * message: string,
+       * ttl: number,
+       * data: {
+       *  website: string,
+       *  name: string,
+       *  image: string
+       * }[]
+       * }}
+       */
+      let data = JSON.parse(await HTTPsend(`${this.lastplaygameURL}?mid=${uid}`,
+        "GET",
+        {
+          "Referer": `https://space.bilibili.com/${uid}`,
+        }
+      ))
+      if (data.code != 0) {
+        console.error(`[${NAME}][${D()}]: `, data)
+        return []
+      }
+      let items = data.data
+      return items
+    }
     /**
      * @param {{
        *   id_str: string,
@@ -485,12 +585,17 @@
      *  }[]} items
      */
     checkDynamicsIncludeKeyword(items) {
+      let types = []
       for (let item of items) {
-        if (this.checkDynamicIncludeKeyword(item)) {
-          return true
+        let _types = this.checkDynamicIncludeKeyword(item)
+        for (let type of _types) {
+          if (!types.includes(type)) {
+            types.push(type)
+          }
         }
       }
-      return false
+      return [...new Set(types)]
+      // return types
     }
     /**
      * @param {{
@@ -544,20 +649,23 @@
      *  }} item
      */
     checkDynamicIncludeKeyword(item) {
-      if (item == undefined) return false
-      // for (let item of items) {
+      if (item == undefined) return []
+      /** @type {string[]} */
+      let types = []
       if (item.modules.module_dynamic.desc != null) {
-        if (this.checkKeyword(item.modules.module_dynamic.desc.text)) {
-          return true
-        }
+        types = this.checkKeyword(item.modules.module_dynamic.desc.text)
       }
       switch (item.type) {
         case "DYNAMIC_TYPE_FORWARD":
           {
             if (item.orig != undefined) {
-              for (let uid of this.uids) {
-                if (item.orig.modules.module_author.mid == uid) {
-                  return true
+              for (let _item of this.KeywordChecklist) {
+                for (let uid of _item.uids) {
+                  if (item.orig.modules.module_author.mid == uid) {
+                    if (!types.includes(_item.type)) {
+                      types.push(_item.type)
+                    }
+                  }
                 }
               }
               switch (item.orig.type) {
@@ -566,8 +674,12 @@
                 case "DYNAMIC_TYPE_WORD":
                   {
                     if (item.orig.modules.module_dynamic.desc != null) {
-                      if (this.checkKeyword(item.orig.modules.module_dynamic.desc.text)) {
-                        return true
+                      let _types = this.checkKeyword(item.orig.modules.module_dynamic.desc.text)
+                      // 加入 types 中并去重
+                      for (let type of _types) {
+                        if (!types.includes(type)) {
+                          types.push(type)
+                        }
                       }
                     }
                   }
@@ -575,15 +687,29 @@
                 case "DYNAMIC_TYPE_AV":
                   {
                     if (item.orig.modules.module_dynamic.desc != null) {
-                      if (this.checkKeyword(item.orig.modules.module_dynamic.desc.text)) {
-                        return true
+                      let _types = this.checkKeyword(item.orig.modules.module_dynamic.desc.text)
+                      // 加入 types 中并去重
+                      for (let type of _types) {
+                        if (!types.includes(type)) {
+                          types.push(type)
+                        }
                       }
                     }
                     if (item.orig.modules.module_dynamic.major != null) {
                       Console_Devlog(item.orig.modules.module_dynamic.major)
-                      if (this.checkKeyword(item.orig.modules.module_dynamic.major?.archive?.title)
-                      || this.checkKeyword(item.orig.modules.module_dynamic.major?.archive?.desc)) {
-                        return true
+                      let _types = this.checkKeyword(item.orig.modules.module_dynamic.major?.archive?.title)
+                      // 加入 types 中并去重
+                      for (let type of _types) {
+                        if (!types.includes(type)) {
+                          types.push(type)
+                        }
+                      }
+                      _types = this.checkKeyword(item.orig.modules.module_dynamic.major?.archive?.desc)
+                      // 加入 types 中并去重
+                      for (let type of _types) {
+                        if (!types.includes(type)) {
+                          types.push(type)
+                        }
                       }
                     }
                   }
@@ -599,9 +725,19 @@
         case "DYNAMIC_TYPE_AV":
           {
             if (item.modules.module_dynamic.major != null) {
-              if (this.checkKeyword(item.modules.module_dynamic.major.archive.title)
-              || this.checkKeyword(item.modules.module_dynamic.major.archive.desc)) {
-                return true
+              let _types = this.checkKeyword(item.modules.module_dynamic.major?.archive?.title)
+              // 加入 types 中并去重
+              for (let type of _types) {
+                if (!types.includes(type)) {
+                  types.push(type)
+                }
+              }
+              _types = this.checkKeyword(item.modules.module_dynamic.major?.archive?.desc)
+              // 加入 types 中并去重
+              for (let type of _types) {
+                if (!types.includes(type)) {
+                  types.push(type)
+                }
               }
             }
           }
@@ -614,23 +750,34 @@
         default:
           break
       }
-      // }
-      return false
+      return [...new Set(types)]
+      // return types
     }
+    /**
+     * 
+     * @param {string} text 
+     * @returns {string[]}
+     */
     checkKeyword(text) {
+      let types = []
+      // 循环 this.KeywordChecklist
       if (text != null) {
-        for (let keyword of this.keywords) {
-          if (text.includes(keyword)) {
-            return true
+        for (let item of this.KeywordChecklist) {
+          for (let keyword of item.keywords) {
+            if (text.includes(keyword)
+              && !types.includes(item.type)) {
+              types.push(item.type)
+            }
           }
-        }
-        for (let keyword of this.soeWithKeywords) {
-          if (text.startsWith(keyword) || text.endsWith(keyword)) {
-            return true
+          for (let keyword of item.soeWithKeywords) {
+            if ((text.startsWith(keyword) || text.endsWith(keyword))
+              && !types.includes(item.type)) {
+              types.push(item.type)
+            }
           }
         }
       }
-      return false
+      return types
     }
     async checkUser() {
       if (this.running) return
@@ -639,62 +786,90 @@
       // 复制一份 this.list
       let list = this.list.slice()
       for (let user of list) {
-        if (bLab8A.data.miHoYo.some(e => e.uid == user.uid)) {
-          Console_log("已知的米哈游玩家", user)
-          if (user.dom != undefined) {
-            this.insertSpan(user.dom, this.tag)
+        /** 
+         * @type {{
+         * website: string;
+         * name: string;
+         * image: string;
+         * }[]|undefined} */
+        let games = undefined
+        let needCheck = false
+        for (let item of this.KeywordChecklist) {
+          if (!bLab8A.data[item.type]) {
+            bLab8A.data[item.type] = []
           }
+          if (bLab8A.data[item.type].some(e => e.uid == user.uid)) {
+            console.log(`[${NAME}][${D()}]: `, `已知的${item.tag}`, user)
+            if (user.dom != undefined) {
+              this.insertSpan(user.dom, item)
+            }
+            continue
+          }
+          else if (!bLab8A.data.none_Player.some(e => e.uid == user.uid)) {
+            needCheck = true
+          }
+        }
+        if (!needCheck) {
           continue
         }
-        else if (bLab8A.data.no_miHoYo.some(e => e.uid == user.uid)) {
-          Console_log("已知的非米哈游玩家", user)
-          continue
+        /** @type {string[]} */
+        let types = []
+        if (games === undefined) {
+          games = await this.getUserLastPlayGame(user.uid)
+          if (games.length != 0) {
+            for (let game of games) {
+              // 判断 game.name 是否和 this.KeywordChecklist 里的 games 一致
+              for (let item of this.KeywordChecklist) {
+                if (item.games.includes(game.name)
+                  && !types.includes(item.type)) {
+                  types.push(item.type)
+                }
+              }
+            }
+          }
         }
         Console_Devlog(`检查用户 ${user.name}`)
-        await RList.Push()
+        // await RList.Push()
         let dynamic = await this.getUserDynamic(user.uid)
         if (dynamic == undefined) continue
         if (dynamic.items.length == 0) continue
-        let has_miHoYo = this.checkDynamicsIncludeKeyword(dynamic.items)
-        if (has_miHoYo) {
-          Console_log("米哈游玩家", user)
-          bLab8A.data.miHoYo.push({
-            uid: user.uid,
-            name: user.name,
-          })
-          this.insertSpan(user.dom, this.tag)
+        types = [...new Set([...types, ...this.checkDynamicsIncludeKeyword(dynamic.items)])]
+        // await RList.Push()
+        dynamic = await this.getUserDynamic(user.uid, dynamic.offset)
+        if (dynamic != undefined
+          && dynamic.items.length !== 0) {
+          // 合并 types 并去重
+          types = [...new Set([...types, ...this.checkDynamicsIncludeKeyword(dynamic.items)])]
         }
-        else {
-          await RList.Push()
-          dynamic = await this.getUserDynamic(user.uid, dynamic.offset)
-          if (dynamic != undefined
-            && dynamic.items.length !== 0) {
-            has_miHoYo = this.checkDynamicsIncludeKeyword(dynamic.items)
-            if (has_miHoYo) {
-              Console_log("米哈游玩家", user)
-              bLab8A.data.miHoYo.push({
-                uid: user.uid,
-                name: user.name,
-              })
-              this.insertSpan(user.dom, this.tag)
+        if (types.length !== 0) {
+          console.log(`[${NAME}][${D()}]: `, `游戏玩家${types.join(",")}`, user)
+          for (let type of types) {
+            if (!bLab8A.data[type]) {
+              bLab8A.data[type] = []
             }
-            else {
-              Console_log("非米哈游玩家", user)
-              bLab8A.data.no_miHoYo.push({
-                uid: user.uid,
-                name: user.name,
-              })
-            }
-          }
-          else {
-            Console_log("非米哈游玩家", user)
-            bLab8A.data.no_miHoYo.push({
+            bLab8A.data[type].push({
               uid: user.uid,
               name: user.name,
             })
+            bLab8A.save()
+            // 从 this.KeywordChecklist 找到 type 一致的项
+            let _item = this.KeywordChecklist.find(e => e.type == type)
+            if (_item != undefined) {
+              this.insertSpan(user.dom, _item)
+            }
           }
         }
-        bLab8A.save()
+        else {
+          console.log(`[${NAME}][${D()}]: `, "非游戏玩家", user)
+          if (!bLab8A.data.none_Player) {
+            bLab8A.data.none_Player = []
+          }
+          bLab8A.data.none_Player.push({
+            uid: user.uid,
+            name: user.name,
+          })
+          bLab8A.save()
+        }
       }
       this.running = false
       // 删除已经检查过的用户
@@ -707,18 +882,22 @@
     }
     /**
      * @param {HTMLElement} dom 
-     * @param {string} text 
+     * @param {{
+     *  tag: string,
+     *  type: string,
+     *  color: string,
+     * }} item 
      */
-    insertSpan(dom, text) {
+    insertSpan(dom, item) {
       if (dom != undefined) {
-        if (dom.querySelector("span.check_tag") != null) {
+        if (dom.querySelector(`span.check_tag_${item.type}`) != null) {
           return
         }
         let span = document.createElement("span")
-        span.classList.add("check_tag")
-        span.style.color = "red"
-        span.title = `非准确结果，是否为${text}请自行判断`
-        span.innerText = text
+        span.classList.add(`check_tag_${item.type}`)
+        span.style.color = item.color
+        span.title = `非准确结果，是否为${item.tag}请自行判断`
+        span.innerText = item.tag
         dom.appendChild(span)
       }
     }
