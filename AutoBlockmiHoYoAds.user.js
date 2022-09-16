@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.1
+// @version      0.2
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -11,6 +11,7 @@
 // @grant        GM_getValue
 // @grant        GM_registerMenuCommand
 // @grant        GM_xmlhttpRequest
+// @license      MIT
 // ==/UserScript==
 
 (async function () {
@@ -169,6 +170,9 @@
     PPC_keywords = [
       "bilibili://game_center/detail?id=103496&",
       "bilibili://game_center/detail?id=94&",
+      "bilibili://game_center/detail?id=108434&",
+      "bilibili://game_center/detail?id=107800&",
+      "bilibili://game_center/detail?id=12&",
     ]
     async getAdsList(page = 1, size = 10, ad_title = "", trust_status = "") {
       console.log(`[${NAME}][${D()}]: `, `正在获取广告列表第${page}页`)
