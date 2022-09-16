@@ -55,7 +55,7 @@
     }
     load() {
       console.log(`[${NAME}][${D()}]: `, "正在加载数据")
-      const defaultData = "{\"downlist\":[],\"downimg\":false,\"authorization\":\"\",\"swimsuit\":[],\"underwear\":[],\"black_bikini\":[],\"freesia\":[],\"freesia_m\":[],\"downhash\":[]}"
+      const defaultData = "{}"
       if (typeof GM_getValue !== 'undefined') {
         let gdata = GM_getValue(localItem, JSON.parse(defaultData))
         return gdata
@@ -228,9 +228,9 @@
       return list
     }
     /**
-     *
-     * @param {number} creative_ids
-     * @param {number} trust_status
+     * 
+     * @param {number} creative_ids 
+     * @param {number} trust_status 
      */
     async setAdsTrustStatus(creative_ids, trust_status) {
       let url = this.filter_adsUrl
