@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.3.8
+// @version      1.3.9
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -334,9 +334,13 @@
                 lists.Clear(obj)
                 lists.Hide(obj)
                 let zz = async () => {
-                    for (let i = 0; i < uFA.imglist.length; i++) {
+                    if (uFA.imglist.length <= 1000) for (let i = 0; i < uFA.imglist.length; i++) {
                         const element = uFA.imglist[i]
                         lists.Add(element.url, obj)
+                    }
+                    else {
+                        lists.Add("图片数量过长，在控制台显示", obj)
+                        console.log(uFA.imglist.length)
                     }
                     MBBtn(true)
                     lists.Show(obj)
