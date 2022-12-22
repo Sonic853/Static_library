@@ -1,6 +1,6 @@
 // ==UserScript==
 // @name         哔哩哔哩图片打包下载（支持相簿和专栏
-// @version      1.3.9
+// @version      1.3.10
 // @description  下载B站UP主Bilibili动态相册相簿图片，以及视频封面，专栏图片和UP主头像以及主页壁纸，直播间封面和直播间壁纸，然后提交给aria2或打包成zip
 // @author       Sonic853
 // @namespace    https://blog.853lab.com
@@ -324,6 +324,7 @@
     }
     let CreactMenu = function () {
         let Creact_G = function (Mode) {
+            uFA.GetOK = false
             uFA.Mode = Mode
             uFA.index = 0
             uFA.all_count = 0
@@ -351,9 +352,9 @@
             }
             let t2 = setInterval(() => {
                 let index = uFA.index
-                if (index++ >= uFA.all_count && uFA.all_count != 0 && uFA.Mode != 4) {
+                if ((uFA.GetOK || index++ >= uFA.all_count && uFA.all_count != 0) && uFA.Mode != 4) {
                     writeimglist()
-                } else if (uFA.Mode == 4 && uFA.index == 999) {
+                } else if (uFA.GetOK && uFA.Mode == 4 && uFA.index == 999) {
                     writeimglist()
                 }
             }, 100)
