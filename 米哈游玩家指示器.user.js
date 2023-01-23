@@ -812,6 +812,7 @@
         if (!needCheck) {
           continue
         }
+        console.log(`[${NAME}][${D()}]: `, `检查用户 ${user.name}`)
         /** @type {string[]} */
         let types = []
         if (games === undefined) {
@@ -828,7 +829,6 @@
             }
           }
         }
-        Console_Devlog(`检查用户 ${user.name}`)
         // await RList.Push()
         let dynamic = await this.getUserDynamic(user.uid)
         if (dynamic == undefined) continue

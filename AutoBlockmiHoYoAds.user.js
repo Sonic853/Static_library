@@ -1,11 +1,13 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.2
+// @version      0.3
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
 // @match        https://cm.bilibili.com/*
+// @match        https://space.bilibili.com/*
+// @match        https://www.bilibili.com/*
 // @icon         https://www.google.com/s2/favicons?sz=64&domain=bilibili.com
 // @grant        GM_setValue
 // @grant        GM_getValue
@@ -174,6 +176,26 @@
       "bilibili://game_center/detail?id=107800&",
       "bilibili://game_center/detail?id=12&",
     ]
+    get runningTime() {
+      /**
+       * @type {{
+       * runningTime: number,
+       * }}
+       */
+      let data = bLab8A.load()
+      return data.runningTime === undefined ? 0 : data.runningTime
+    }
+    /** @param {number} v */
+    set runningTime(v) {
+      /**
+       * @type {{
+       * runningTime: number,
+       * }}
+       */
+      let data = bLab8A.load()
+      data.runningTime = v
+      bLab8A.save(data)
+    }
     async getAdsList(page = 1, size = 10, ad_title = "", trust_status = "") {
       console.log(`[${NAME}][${D()}]: `, `正在获取广告列表第${page}页`)
       let url = `${this.filter_ads_by_pageUrl}?page=${page}&size=${size}&ad_title=${ad_title}&trust_status=${trust_status}`
@@ -216,6 +238,8 @@
       return null
     }
     async getAdsAllList() {
+      const _runningTime = Date.now()
+      this.runningTime = _runningTime
       let page = 1
       let size = 10
       let ad_title = ""
@@ -223,7 +247,11 @@
       let data = await this.getAdsList(page, size, ad_title, trust_status)
       let total_count = data.total_count
       let list = data.data
-      while (list.length < total_count) {
+      while (page < total_count / size) {
+        if (this.runningTime > _runningTime) {
+          console.log(`[${NAME}][${D()}]: `, "其它相同脚本正在运行")
+          return []
+        }
         page++
         await RList.Push()
         data = await this.getAdsList(page, size, ad_title, trust_status)
@@ -232,9 +260,9 @@
       return list
     }
     /**
-     * 
-     * @param {number} creative_ids 
-     * @param {number} trust_status 
+     *
+     * @param {number} creative_ids
+     * @param {number} trust_status
      */
     async setAdsTrustStatus(creative_ids, trust_status) {
       let url = this.filter_adsUrl
@@ -293,6 +321,10 @@
       console.log(`[${NAME}][${D()}]: `, `已屏蔽 ${blocked} 条广告`)
     }
     GM_registerMenuCommand("Block miHoYo Ads", startBlock)
-    startBlock()
+    try {
+      await startBlock()
+    } catch (error) {
+      console.error(error)
+    }
   }
 })()
