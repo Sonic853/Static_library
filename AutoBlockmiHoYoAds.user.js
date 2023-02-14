@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.6
+// @version      0.7
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -442,7 +442,7 @@
             detail = await adsManager.getDetailFromBvid(vid)
           }
           else if (vid.toLowerCase().startsWith("av")) {
-            detail = await adsManager.getDetailFromBvid(vid.slice(2))
+            detail = await adsManager.getDetailFromAid(vid.slice(2))
           }
           if (detail) for (const keyword of adsManager.keywords) {
             if (isAds) break
