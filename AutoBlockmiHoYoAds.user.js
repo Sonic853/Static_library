@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.4
+// @version      0.5
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -204,14 +204,16 @@
       "miHoYo",
       "崩坏3",
       "崩坏三",
-      "女武神",
+      // "女武神",
       "提瓦特大陆",
-      "好耶，是大冒险！",
-      "律者",
+      // "好耶，是大冒险！",
+      // "律者",
       "米哈游",
       "星穹铁道",
       "绝区零",
-      "为世界上所有的美好而战！",
+      // "为世界上所有的美好而战！",
+      "未定事件簿",
+      "米游社",
     ]
     PPC_keywords = [
       "bilibili://game_center/detail?id=103496&",
@@ -357,6 +359,44 @@
     async getTagsFromBvid(bvid) {
       return await this.getTagsFromAid(bv2av.dec(bvid).slice(2))
     }
+    // https://api.bilibili.com/x/web-interface/view/detail?aid=609096644
+    async getDetailFromAid(aid) {
+      await RList.Push()
+      let url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`
+      /**
+       * @type {{
+       * code: number,
+       * message: string,
+       * ttl: number,
+       * data: {
+       *  Tags: {
+       *   tag_name: string,
+       *   tag_id: number,
+       *  }[],
+       *  View: {
+       *   aid: number,
+       *   bvid: string,
+       *   desc: string,
+       *   title: string,
+       *  }
+       * }
+       * }}
+       */
+      let result = JSON.parse(await HTTPsend(url, "GET"))
+      if (result.code == 0) {
+        return {
+          tags: result.data.Tags.map((item) => item.tag_name),
+          title: result.data.View.title,
+          desc: result.data.View.desc,
+          aid: result.data.View.aid,
+          bvid: result.data.View.bvid,
+        }
+      }
+      return null
+    }
+    async getDetailFromBvid(bvid) {
+      return await this.getDetailFromAid(bv2av.dec(bvid).slice(2))
+    }
   }
 
   // 判断浏览器 url 是否为 https://cm.bilibili.com 开头
@@ -414,18 +454,32 @@
           || _item.promotion_purpose_content.toLocaleLowerCase().startsWith('http://www.bilibili.com/video/'))) {
           const vid = _item.promotion_purpose_content.split('/')[4].split('?')[0]
           /**
-           * @type {string[]}
+           * @type {{
+           *  tags: string[];
+           *  title: string;
+           *  desc: string;
+           *  aid: number;
+           *  bvid: string;
+           *}}
            */
-          let tags = []
+          let detail = null
           if (vid.startsWith("BV")) {
-            tags = await adsManager.getTagsFromBvid(vid)
+            detail = await adsManager.getDetailFromBvid(vid)
           }
           else if (vid.toLowerCase().startsWith("av")) {
-            tags = await adsManager.getTagsFromAid(vid.slice(2))
+            detail = await adsManager.getDetailFromBvid(vid.slice(2))
           }
-          for (const keyword of adsManager.keywords) {
+          if (detail) for (const keyword of adsManager.keywords) {
             if (isAds) break
-            for (const tag of tags) {
+            if (detail.title.includes(keyword)) {
+              isAds = true
+              break
+            }
+            if (detail.desc.includes(keyword)) {
+              isAds = true
+              break
+            }
+            for (const tag of detail.tags) {
               if (tag.includes(keyword)) {
                 isAds = true
                 break
