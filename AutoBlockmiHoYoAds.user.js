@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.5
+// @version      0.6
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -37,18 +37,6 @@
         setTimeout(() => { this.#list-- }, (this.#list + 1) * this.time)
       })
     }
-  }
-
-  /**
-   * 
-   * @param {any[]} arr 
-   * @param {*} predicate 
-   * @returns 
-   */
-  const asyncFilter = async (arr, predicate) => {
-    const results = await Promise.all(arr.map(predicate));
-
-    return arr.filter((_v, index) => results[index]);
   }
 
   if (typeof GM_xmlhttpRequest === 'undefined'
@@ -337,6 +325,7 @@
      */
     async getTagsFromAid(aid) {
       await RList.Push()
+      console.log(`[${NAME}][${D()}]: `, `正在获取视频 av${aid} 的 Tag`)
       let url = `https://api.bilibili.com/x/tag/archive/tags?aid=${aid}&_=${Math.round(new Date() / 1000)}`
       /**
        * @type {{
@@ -359,9 +348,9 @@
     async getTagsFromBvid(bvid) {
       return await this.getTagsFromAid(bv2av.dec(bvid).slice(2))
     }
-    // https://api.bilibili.com/x/web-interface/view/detail?aid=609096644
     async getDetailFromAid(aid) {
       await RList.Push()
+      console.log(`[${NAME}][${D()}]: `, `正在获取视频 av${aid} 的详细信息`)
       let url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`
       /**
        * @type {{
@@ -421,38 +410,24 @@
        *  trust_status: number;
        * }[]}
        */
-      let ads = await asyncFilter(list, async (item) => {
-        /**
-         * @type {{
-         *  app_name: string;
-         *  button_copy: string;
-         *  creative_desc: string;
-         *  creative_id: number;
-         *  creative_title: string;
-         *  grade: number;
-         *  image_url: string;
-         *  mtime: number;
-         *  promotion_purpose_content: string;
-         *  trust_status: number;
-         * }}
-         */
-        const _item = item
+      let ads = []
+      for (let item of list) {
         let isAds = false
         for (const keyword of adsManager.keywords) {
-          if (_item.creative_title.includes(keyword)) {
+          if (item.creative_title.includes(keyword)) {
             isAds = true
             break
           }
         }
         if (!isAds) for (const keyword of adsManager.PPC_keywords) {
-          if (_item.promotion_purpose_content.startsWith(keyword)) {
+          if (item.promotion_purpose_content.startsWith(keyword)) {
             isAds = true
             break
           }
         }
-        if (!isAds && (_item.promotion_purpose_content.toLocaleLowerCase().startsWith('https://www.bilibili.com/video/')
-          || _item.promotion_purpose_content.toLocaleLowerCase().startsWith('http://www.bilibili.com/video/'))) {
-          const vid = _item.promotion_purpose_content.split('/')[4].split('?')[0]
+        if (!isAds && (item.promotion_purpose_content.toLocaleLowerCase().startsWith('https://www.bilibili.com/video/')
+          || item.promotion_purpose_content.toLocaleLowerCase().startsWith('http://www.bilibili.com/video/'))) {
+          const vid = item.promotion_purpose_content.split('/')[4].split('?')[0]
           /**
            * @type {{
            *  tags: string[];
@@ -487,8 +462,8 @@
             }
           }
         }
-        return isAds
-      })
+        if (isAds) ads.push(item)
+      }
       if (ads.length == 0) return console.log(`[${NAME}][${D()}]: `, "没有 miHoYo 相关的广告")
       let blocked = 0
       for (let item of ads) {
