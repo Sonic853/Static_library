@@ -328,13 +328,14 @@ class HSRequest {
  * 
  * @param {HSRequest} hsRequest 
  * @param {boolean} stringOnly
- * @returns {Promise<string>|Promise<any>}
+ * @returns {Promise<string>|Promise<XMLHttpRequest>|Promise<Response>|Promise<Tampermonkey.Request>}
  */
 let HTTPSendPro = (hsRequest, stringOnly = false) => {
   if (hsRequest.mode.toUpperCase() === 'GM' && typeof GM_xmlhttpRequest === 'undefined') {
     console.log('HTTPSendPro: GM_xmlhttpRequest not found, using XHR')
     hsRequest.mode = 'XHR'
   }
+  hsRequest.method = hsRequest.method ?? 'GET'
   return new Promise((rl, rj) => {
     switch (hsRequest.mode.toUpperCase()) {
       default:
@@ -468,30 +469,70 @@ let HTTPSendPro = (hsRequest, stringOnly = false) => {
               }
             }
             xhr.onabort = (event) => {
-              if (hsRequest.onabort) hsRequest.onabort(event)
+              if (hsRequest.onabort) hsRequest.onabort(xhr, event)
               rj(event)
             }
+            let errored = false
             xhr.onerror = (event) => {
-              // if (hsRequest.onerror) hsRequest.onerror(event)
-              // rj(event)
+              if (!errored) {
+                errored = true
+                if (hsRequest.onerror) {
+                  hsRequest.onerror(xhr, event)
+                }
+                rj(xhr, event)
+              }
             }
+            let loaded = false
             xhr.onload = (event) => {
-              // if (hsRequest.onload) hsRequest.onload(stringOnly ? xhr.response : xhr)
-              // rl(stringOnly ? xhr.response : xhr)
+              if (!loaded) {
+                loaded = true
+                if (hsRequest.onload) {
+                  if (stringOnly) {
+                    hsRequest.onload(xhr.response)
+                  }
+                  else {
+                    hsRequest.onload(xhr, event)
+                  }
+                }
+                if (stringOnly) {
+                  rl(xhr.response)
+                }
+                else {
+                  rl(xhr)
+                }
+              }
             }
             xhr.onprogress = (event) => {
-              if (hsRequest.onprogress) hsRequest.onprogress(event)
+              if (hsRequest.onprogress) hsRequest.onprogress(xhr, event)
             }
             xhr.onreadystatechange = (event) => {
-              if (hsRequest.onreadystatechange) hsRequest.onreadystatechange(event)
+              if (hsRequest.onreadystatechange) hsRequest.onreadystatechange(xhr, event)
               else {
                 if (xhr.readyState == 4) { // `DONE`
                   if (xhr.status == 200) {
-                    if (hsRequest.onload) hsRequest.onload(stringOnly ? xhr.response : xhr)
-                    rl(stringOnly ? xhr.response : xhr)
+                    if (!loaded) {
+                      loaded = true
+                      if (hsRequest.onload) {
+                        if (stringOnly) {
+                          hsRequest.onload(xhr.response)
+                        }
+                        else {
+                          hsRequest.onload(xhr, event)
+                        }
+                      }
+                      if (stringOnly) {
+                        rl(xhr.response)
+                      }
+                      else {
+                        rl(xhr)
+                      }
+                    }
                   } else {
-                    if (hsRequest.onerror) hsRequest.onerror(xhr)
-                    rj(xhr)
+                    if (!errored) {
+                      errored = true
+                      if (hsRequest.onerror) hsRequest.onerror(xhr, event)
+                      rj(xhr)
+                    }
                   }
                 }
               }
@@ -541,8 +582,24 @@ let HTTPSendPro = (hsRequest, stringOnly = false) => {
               _init.credentials = hsRequest.withCredentials ? 'include' : 'omit'
             }
             fetch(url, _init).then((response) => {
-              if (hsRequest.onload) hsRequest.onload(response)
-              rl(response)
+              if (hsRequest.onload) {
+                if (stringOnly) {
+                  response.text().then((text) => {
+                    hsRequest.onload(text)
+                  })
+                }
+                else {
+                  hsRequest.onload(response)
+                }
+              }
+              if (stringOnly) {
+                response.text().then((text) => {
+                  rl(text)
+                })
+              }
+              else {
+                rl(response)
+              }
             }).catch((error) => {
               if (hsRequest.onerror) hsRequest.onerror(error)
               rj(error)
