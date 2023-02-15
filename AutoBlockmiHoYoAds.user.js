@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.8
+// @version      0.9
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -333,6 +333,7 @@
    * @returns {Promise<string>|Promise<XMLHttpRequest>|Promise<Response>|Promise<Tampermonkey.Request>}
    */
   let HTTPSendPro = (hsRequest, stringOnly = false) => {
+    hsRequest.mode = hsRequest.mode ?? 'GM'
     if (hsRequest.mode.toUpperCase() === 'GM' && typeof GM_xmlhttpRequest === 'undefined') {
       console.log('HTTPSendPro: GM_xmlhttpRequest not found, using XHR')
       hsRequest.mode = 'XHR'

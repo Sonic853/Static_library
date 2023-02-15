@@ -332,6 +332,7 @@ class HSRequest {
  * @returns {Promise<string>|Promise<XMLHttpRequest>|Promise<Response>|Promise<Tampermonkey.Request>}
  */
 let HTTPSendPro = (hsRequest, stringOnly = false) => {
+  hsRequest.mode = hsRequest.mode ?? 'GM'
   if (hsRequest.mode.toUpperCase() === 'GM' && typeof GM_xmlhttpRequest === 'undefined') {
     console.log('HTTPSendPro: GM_xmlhttpRequest not found, using XHR')
     hsRequest.mode = 'XHR'
