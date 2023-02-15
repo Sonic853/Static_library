@@ -8,6 +8,7 @@
    * @param {*} successHandler
    * @param {*} errorHandler
    * @returns
+   * @deprecated Use HTTPSendPro instead.
    */
 let HTTPsend = function (url, method, headers, responseType, data = undefined, successHandler, errorHandler) {
   DEV_Log ?? console.log(`[${NAME}][${D()}]: `, url)
