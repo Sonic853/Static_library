@@ -583,23 +583,29 @@ let HTTPSendPro = (hsRequest, stringOnly = false) => {
               _init.credentials = hsRequest.withCredentials ? 'include' : 'omit'
             }
             fetch(url, _init).then((response) => {
-              if (hsRequest.onload) {
+              if (response.status == 200) {
+                if (hsRequest.onload) {
+                  if (stringOnly) {
+                    response.text().then((text) => {
+                      hsRequest.onload(text)
+                    })
+                  }
+                  else {
+                    hsRequest.onload(response)
+                  }
+                }
                 if (stringOnly) {
                   response.text().then((text) => {
-                    hsRequest.onload(text)
+                    rl(text)
                   })
                 }
                 else {
-                  hsRequest.onload(response)
+                  rl(response)
                 }
               }
-              if (stringOnly) {
-                response.text().then((text) => {
-                  rl(text)
-                })
-              }
               else {
-                rl(response)
+                if (hsRequest.onerror) hsRequest.onerror(response)
+                rj(response)
               }
             }).catch((error) => {
               if (hsRequest.onerror) hsRequest.onerror(error)
@@ -618,6 +624,8 @@ HTTPSendPro({
   mode: 'GM',
   method: 'GET',
   url: 'https://www.baidu.com',
-}, true).then((response) => {
-  console.log(response)
-})
+}, true).then(
+  /** @param {string} response */
+  (response) => {
+    console.log(response)
+  })
