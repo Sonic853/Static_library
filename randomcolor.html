@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+body {
+  background-color: #f2f2f2;
+}
+</style>
+</head>
+<body>
+
+<h1>全屏的纯颜色的html，可以点击变成随机颜色</h1>
+
+<p>把鼠标放在这个页面上，背景颜色会变成随机颜色。</p>
+
+<script>
+document.body.addEventListener('click', function() {
+  var r = Math.floor(Math.random() * 256);
+  var g = Math.floor(Math.random() * 256);
+  var b = Math.floor(Math.random() * 256);
+  document.body.style.backgroundColor = 'rgb(' + r + ',' + g + ',' + b + ')';
+});
+</script>
+
+</body>
+</html>
