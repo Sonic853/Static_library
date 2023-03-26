@@ -7,6 +7,7 @@ body {
   background-color: #f2f2f2;
   width: 100vw;
   height: 100vh;
+  transition:all .3s;
 }
 </style>
 </head>
@@ -25,7 +26,7 @@ function random_bg_color() {
 }
 
 document.body.addEventListener('click', random_bg_color);
-setInterval(random_bg_color, 10000);
+setInterval(random_bg_color, 5000);
 </script>
 
 </body>
