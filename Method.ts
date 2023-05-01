@@ -103,3 +103,15 @@ export class EventEmiter {
     this.events[event] = []
   }
 }
+export const Snooze = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+export class RList {
+  static time = 500
+  static #list = -1
+  static async Push() {
+    this.#list++
+    await Snooze(this.#list * this.time)
+    Promise.resolve().finally(() => {
+      setTimeout(() => { this.#list-- }, (this.#list + 1) * this.time)
+    })
+  }
+}
