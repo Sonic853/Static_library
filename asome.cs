@@ -1,0 +1,1 @@
+// Mathf.Clamp(time / duration, 0f, 1f)
