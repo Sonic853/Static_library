@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      0.10
+// @version      1.0
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -68,10 +68,10 @@
 
   const snooze = ms => new Promise(resolve => setTimeout(resolve, ms))
 
-  const RList = new class {
-    time = 200
-    #list = -1
-    async Push() {
+  const RList = class {
+    static time = 200
+    static #list = -1
+    static async Push() {
       this.#list++
       await snooze(this.#list * this.time)
       Promise.resolve().finally(() => {
@@ -89,15 +89,15 @@
     console.log(`[${NAME}][${D()}]: `, "GM is Ready.")
   }
 
-  let BLab8A = class {
+  const BLab8A = class {
     /**
      * @type {Object.<string, string>} data
      */
-    data
-    constructor() {
-      this.data = this.load()
-    }
-    load() {
+    static data = this.load()
+    // constructor() {
+    //   this.data = this.load()
+    // }
+    static load() {
       console.log(`[${NAME}][${D()}]: `, "正在加载数据")
       const defaultData = "{}"
       if (typeof GM_getValue !== 'undefined') {
@@ -108,14 +108,13 @@
         return ldata
       }
     }
-    save(d) {
+    static save(d) {
       console.log(`[${NAME}][${D()}]: `, "正在保存数据")
       d === undefined ? (d = this.data) : (this.data = d)
       typeof GM_getValue != 'undefined' ? GM_setValue(localItem, d) : localStorage.setItem(localItem, JSON.stringify(d))
       return this
     }
   }
-  let bLab8A = new BLab8A()
 
   class HSRequest {
     /**
@@ -664,25 +663,25 @@
   }
 
   class BV2AV {
-    table = "fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF"
+    static table = "fZodR9XQDSUm21yCkr6zBqiveYah8bt4xsWpHnJE7jL5VG3guMTKNPAwcF"
     /**
      * @type {[key: string]: number}
      */
-    tr = {}
-    s = [11, 10, 3, 8, 4, 6]
-    xor = 177451812
-    add = 8728348608
-    constructor() {
-      for (let i = 0; i < 58; ++i) {
-        this.tr[this.table[i]] = i
-      }
-    }
+    static tr = {}
+    static s = [11, 10, 3, 8, 4, 6]
+    static xor = 177451812
+    static add = 8728348608
+    // constructor() {
+    //   for (let i = 0; i < 58; ++i) {
+    //     this.tr[this.table[i]] = i
+    //   }
+    // }
     /**
      * BV2AV
      * @param {string} x 
      * @returns {string}
      */
-    dec(x) {
+    static dec(x) {
       let r = 0
       for (let i = 0; i < 6; ++i) {
         r += this.tr[x[this.s[i]]] * 58 ** i
@@ -690,12 +689,14 @@
       return "av" + String((r - this.add) ^ this.xor)
     }
   }
-  let bv2av = new BV2AV()
+  for (let i = 0; i < 58; ++i) {
+    BV2AV.tr[BV2AV.table[i]] = i
+  }
 
   class AdsManager {
-    filter_ads_by_pageUrl = "https://cm.bilibili.com/meet/api/open_api/v1/up/web/trust_ad/filter_ads_by_page"
-    filter_adsUrl = "https://cm.bilibili.com/meet/api/open_api/v1/up/web/trust_ad/filter_ads"
-    keywords = [
+    static filter_ads_by_pageUrl = "https://cm.bilibili.com/meet/api/open_api/v1/up/web/trust_ad/filter_ads_by_page"
+    static filter_adsUrl = "https://cm.bilibili.com/meet/api/open_api/v1/up/web/trust_ad/filter_ads"
+    static keywords = [
       "原神",
       "崩坏学园",
       "崩坏学院",
@@ -713,34 +714,48 @@
       "未定事件簿",
       "米游社",
     ]
-    PPC_keywords = [
+    static PPC_keywords = [
       "bilibili://game_center/detail?id=103496&",
       "bilibili://game_center/detail?id=94&",
       "bilibili://game_center/detail?id=108434&",
       "bilibili://game_center/detail?id=107800&",
       "bilibili://game_center/detail?id=12&",
     ]
-    get runningTime() {
+    static PPC_keywords_includes = [
+      "id1523037824",
+      "id1517783697",
+      "id1143402987",
+      "id737651307",
+    ]
+    /**
+     * @type {string[]}
+     */
+    static isAdsByAid = []
+    /**
+     * @type {string[]}
+     */
+    static notAdsByAid = []
+    static get runningTime() {
       /**
        * @type {{
        * runningTime: number,
        * }}
        */
-      let data = bLab8A.load()
+      let data = BLab8A.load()
       return data.runningTime === undefined ? 0 : data.runningTime
     }
     /** @param {number} v */
-    set runningTime(v) {
+    static set runningTime(v) {
       /**
        * @type {{
        * runningTime: number,
        * }}
        */
-      let data = bLab8A.load()
+      let data = BLab8A.load()
       data.runningTime = v
-      bLab8A.save(data)
+      BLab8A.save(data)
     }
-    async getAdsList(page = 1, size = 10, ad_title = "", trust_status = "") {
+    static async getAdsList(page = 1, size = 10, ad_title = "", trust_status = "") {
       console.log(`[${NAME}][${D()}]: `, `正在获取广告列表第${page}页`)
       let url = `${this.filter_ads_by_pageUrl}?page=${page}&size=${size}&ad_title=${ad_title}&trust_status=${trust_status}`
       /**
@@ -785,7 +800,7 @@
       console.error(data)
       return null
     }
-    async getAdsAllList() {
+    static async getAdsAllList() {
       const _runningTime = Date.now()
       this.runningTime = _runningTime
       let page = 1
@@ -812,7 +827,7 @@
      * @param {number} creative_ids
      * @param {number} trust_status
      */
-    async setAdsTrustStatus(creative_ids, trust_status) {
+    static async setAdsTrustStatus(creative_ids, trust_status) {
       let url = this.filter_adsUrl
       let data = {
         creative_ids,
@@ -842,7 +857,7 @@
      * 
      * @param {string} aid 
      */
-    async getTagsFromAid(aid) {
+    static async getTagsFromAid(aid) {
       await RList.Push()
       console.log(`[${NAME}][${D()}]: `, `正在获取视频 av${aid} 的 Tag`)
       let url = `https://api.bilibili.com/x/tag/archive/tags?aid=${aid}&_=${Math.round(new Date() / 1000)}`
@@ -867,10 +882,18 @@
       console.error(result)
       return []
     }
-    async getTagsFromBvid(bvid) {
-      return await this.getTagsFromAid(bv2av.dec(bvid).slice(2))
+    /**
+     * 
+     * @param {string} bvid 
+     */
+    static async getTagsFromBvid(bvid) {
+      return await this.getTagsFromAid(BV2AV.dec(bvid).slice(2))
     }
-    async getDetailFromAid(aid) {
+    /**
+     * 
+     * @param {string} aid 
+     */
+    static async getDetailFromAid(aid) {
       await RList.Push()
       console.log(`[${NAME}][${D()}]: `, `正在获取视频 av${aid} 的详细信息`)
       let url = `https://api.bilibili.com/x/web-interface/view/detail?aid=${aid}`
@@ -908,8 +931,12 @@
       }
       return null
     }
-    async getDetailFromBvid(bvid) {
-      return await this.getDetailFromAid(bv2av.dec(bvid).slice(2))
+    /**
+     * 
+     * @param {string} bvid 
+     */
+    static async getDetailFromBvid(bvid) {
+      return await this.getDetailFromAid(BV2AV.dec(bvid).slice(2))
     }
   }
 
@@ -917,10 +944,10 @@
   if (location.href.startsWith("https://cm.bilibili.com")) {
   }
   else {
-    let adsManager = new AdsManager()
+    // let adsManager = new AdsManager()
     const startBlock = async () => {
       console.log(`[${NAME}][${D()}]: `, "获取广告列表")
-      let list = await adsManager.getAdsAllList()
+      let list = await AdsManager.getAdsAllList()
       /**
        * @type {{
        *  app_name: string;
@@ -938,14 +965,20 @@
       let ads = []
       for (let item of list) {
         let isAds = false
-        for (const keyword of adsManager.keywords) {
+        for (const keyword of AdsManager.keywords) {
           if (item.creative_title.includes(keyword)) {
             isAds = true
             break
           }
         }
-        if (!isAds) for (const keyword of adsManager.PPC_keywords) {
+        if (!isAds) for (const keyword of AdsManager.PPC_keywords) {
           if (item.promotion_purpose_content.startsWith(keyword)) {
+            isAds = true
+            break
+          }
+        }
+        if (!isAds) for (const keyword of AdsManager.PPC_keywords_includes) {
+          if (item.promotion_purpose_content.includes(keyword)) {
             isAds = true
             break
           }
@@ -964,26 +997,45 @@
            */
           let detail = null
           if (vid.startsWith("BV")) {
-            detail = await adsManager.getDetailFromBvid(vid)
-          }
-          else if (vid.toLowerCase().startsWith("av")) {
-            detail = await adsManager.getDetailFromAid(vid.slice(2))
-          }
-          if (detail) for (const keyword of adsManager.keywords) {
-            if (isAds) break
-            if (detail.title.includes(keyword)) {
+            const aid = BV2AV.dec(vid).slice(2)
+            if (AdsManager.notAdsByAid.includes(aid)) continue
+            // detail = await AdsManager.getDetailFromBvid(vid)
+            if (AdsManager.isAdsByAid.includes(aid))
               isAds = true
-              break
-            }
-            if (detail.desc.includes(keyword)) {
+            else
+              detail = await AdsManager.getDetailFromAid(aid)
+          }
+          if (vid.toLowerCase().startsWith("av")) {
+            if (AdsManager.notAdsByAid.includes(vid.slice(2))) continue
+            if (AdsManager.isAdsByAid.includes(vid.slice(2)))
               isAds = true
-              break
-            }
-            for (const tag of detail.tags) {
-              if (tag.includes(keyword)) {
+            else
+              detail = await AdsManager.getDetailFromAid(vid.slice(2))
+          }
+          if (detail) {
+            for (const keyword of AdsManager.keywords) {
+              if (isAds) break
+              if (detail.title.includes(keyword)) {
                 isAds = true
+                AdsManager.isAdsByAid.push(detail.aid.toString())
                 break
               }
+              if (detail.desc.includes(keyword)) {
+                isAds = true
+                AdsManager.isAdsByAid.push(detail.aid.toString())
+                break
+              }
+              for (const tag of detail.tags) {
+                if (tag.includes(keyword)) {
+                  isAds = true
+                  AdsManager.isAdsByAid.push(detail.aid.toString())
+                  break
+                }
+              }
+            }
+            if (!isAds)
+            {
+              AdsManager.notAdsByAid.push(detail.aid.toString())
             }
           }
         }
@@ -994,7 +1046,7 @@
       for (let item of ads) {
         console.log(`[${NAME}][${D()}]: `, `正在屏蔽广告：${item.creative_title}`)
         await RList.Push()
-        let r = await adsManager.setAdsTrustStatus(item.creative_id, 0)
+        let r = await AdsManager.setAdsTrustStatus(item.creative_id, 0)
         console.log(`[${NAME}][${D()}]: `, r ? "屏蔽成功" : "屏蔽失败")
         if (r) blocked++
       }
