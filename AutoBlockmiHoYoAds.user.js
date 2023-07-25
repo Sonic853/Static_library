@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      1.1
+// @version      1.2
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -696,21 +696,24 @@
   class AdsManager {
     static filter_ads_by_pageUrl = "https://cm.bilibili.com/meet/api/open_api/v1/up/web/trust_ad/filter_ads_by_page"
     static filter_adsUrl = "https://cm.bilibili.com/meet/api/open_api/v1/up/web/trust_ad/filter_ads"
+    // https://www.bilibili.com/video/av546869571/?t=21
     static keywords = [
-      "原神",
+      "米哈游",
+      "miHoYo",
+      "HoYoverse",
+      "HoYoLAB",
       "崩坏学园",
       "崩坏学院",
-      "miHoYo",
       "崩坏3",
       "崩坏三",
       // "女武神",
+      // "律者",
+      "原神",
       "提瓦特大陆",
       // "好耶，是大冒险！",
-      // "律者",
-      "米哈游",
+      // "为世界上所有的美好而战！",
       "星穹铁道",
       "绝区零",
-      // "为世界上所有的美好而战！",
       "未定事件簿",
       "米游社",
     ]
