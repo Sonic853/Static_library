@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         创作中心广告管理自动屏蔽米哈游相关的广告
 // @namespace    http://853lab.com/
-// @version      1.0
+// @version      1.1
 // @description  自动屏蔽在“创作中心”→“创作激励”→“广告管理”中与米哈游相关的广告。So FUCK YOU, miHoYo!
 // @author       Sonic853
 // @match        https://member.bilibili.com/*
@@ -984,8 +984,23 @@
           }
         }
         if (!isAds && (item.promotion_purpose_content.toLocaleLowerCase().startsWith('https://www.bilibili.com/video/')
-          || item.promotion_purpose_content.toLocaleLowerCase().startsWith('http://www.bilibili.com/video/'))) {
-          const vid = item.promotion_purpose_content.split('/')[4].split('?')[0]
+          || item.promotion_purpose_content.toLocaleLowerCase().startsWith('http://www.bilibili.com/video/')
+          || item.promotion_purpose_content.toLocaleLowerCase().startsWith('bilibili://video/')
+        )) {
+          /**
+           * @type {string}
+           */
+          let vid
+          // bilibili://video/615778550?source_id=__SOURCEID__&resource_id=__RESOURCEID__&creative_id=__CREATIVEID__&linked_creative_id=110656445&track_id=__TRACKID__&from_spmid=__FROMSPMID__&trackid=__FROMTRACKID__&request_id=__REQUESTID__&caid=__CAID__&biz_extra=%7B%22ad_play_page%22%3A1%7D
+          if (item.promotion_purpose_content.toLocaleLowerCase().startsWith('bilibili://video/')) {
+            vid = item.promotion_purpose_content.split('/')[3].split('?')[0]
+            if (!vid.startsWith("BV")) {
+              vid = `av${vid}`
+            }
+          }
+          else {
+            vid = item.promotion_purpose_content.split('/')[4].split('?')[0]
+          }
           /**
            * @type {{
            *  tags: string[];
@@ -1033,8 +1048,7 @@
                 }
               }
             }
-            if (!isAds)
-            {
+            if (!isAds) {
               AdsManager.notAdsByAid.push(detail.aid.toString())
             }
           }
