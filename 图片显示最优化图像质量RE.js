@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       Resize Image On "Open image in new tab" Re
 // @name:zh-CN 图片显示最优化图像质量RE
-// @version    0.1.0
+// @version    0.1.1
 // @description  Support: Google(blogspot YouTube)\Tumblr\Twitter\Steam(Only user content)\ArtStation\Pinimg\Weibo\Reddit (And more...
 // @description:zh-CN 支持：谷歌(blogspot YouTube)、Tumblr、推特、Steam、新浪微博、知乎、豆瓣、百度贴吧、淘宝（天猫）、ArtStation、Pinimg、Reddit 等
 // @run-at     document-start
@@ -64,6 +64,8 @@
 // @match      https://mmbiz.qpic.cn/*
 // @match      https://image.gcores.com/*
 // @match      https://bkimg.cdn.bcebos.com/*
+// @match      https://*/wp-content/uploads/*/*
+// @match      http://*/wp-content/uploads/*/*
 // @copyright  https://blog.853lab.com/
 // @license    MIT
 // @namespace  http://853lab.com/
@@ -924,6 +926,19 @@
           }
         }
       })
+    }),
+    // https://*/wp-content/uploads/*/*
+    // http://*/wp-content/uploads/*/*
+    // 判断是否带有 - 并且后面是 数字x数字
+    new CFG("wp-content", /^(https?:\/\/.+?\/wp-content\/uploads\/.+?)(-\d+x\d+)?(\.\w+)$/i, m => {
+      if (m[2]) {
+        document.location = m[1] + m[3]
+      }
+    }),
+    new CFG("wp-content", /^(http?:\/\/.+?\/wp-content\/uploads\/.+?)(-\d+x\d+)?(\.\w+)$/i, m => {
+      if (m[2]) {
+        document.location = m[1] + m[3]
+      }
     }),
   ]
   for (const cfg of cfgs) {
