@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       Resize Image On "Open image in new tab" Re
 // @name:zh-CN 图片显示最优化图像质量RE
-// @version    0.1.2
+// @version    0.1.3
 // @description  Support: Google(blogspot YouTube)\Tumblr\Twitter\Steam(Only user content)\ArtStation\Pinimg\Weibo\Reddit (And more...
 // @description:zh-CN 支持：谷歌(blogspot YouTube)、Tumblr、推特、Steam、新浪微博、知乎、豆瓣、百度贴吧、淘宝（天猫）、ArtStation、Pinimg、Reddit 等
 // @run-at     document-start
@@ -66,7 +66,7 @@
 // @match      https://bkimg.cdn.bcebos.com/*
 // @match      https://*/wp-content/uploads/*/*
 // @match      http://*/wp-content/uploads/*/*
-// @match      https://*.126.net
+// @match      https://*.126.net/*
 // @copyright  https://blog.853lab.com/
 // @license    MIT
 // @namespace  http://853lab.com/
@@ -942,8 +942,8 @@
       }
     }),
     // https://p1.music.126.net/FeuE7WOAOGV61z7KtN8CsQ==/109951168561941429.jpg?param=200y200
-    // https://p1.music.126.net/FeuE7WOAOGV61z7KtN8CsQ==/109951168561941429.jpg
-    new CFG("music.163", /^(https?:\/\/p\d+\.music\.126\.net\/.+\/\d+\.jpg)(\?.+)?$/i, m => {
+    // 只识别有 ? 以及之后的参数的 url
+    new CFG("music.163", /^(https?:\/\/p\d+\.music\.126\.net\/.+\/\d+\.(?:jpg|png|gif))\?.*$/i, m => {
       if (m[1]) {
         document.location = m[1]
       }
