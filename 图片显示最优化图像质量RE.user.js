@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name       Resize Image On "Open image in new tab" Re
 // @name:zh-CN 图片显示最优化图像质量RE
-// @version    0.1.1
+// @version    0.1.2
 // @description  Support: Google(blogspot YouTube)\Tumblr\Twitter\Steam(Only user content)\ArtStation\Pinimg\Weibo\Reddit (And more...
 // @description:zh-CN 支持：谷歌(blogspot YouTube)、Tumblr、推特、Steam、新浪微博、知乎、豆瓣、百度贴吧、淘宝（天猫）、ArtStation、Pinimg、Reddit 等
 // @run-at     document-start
