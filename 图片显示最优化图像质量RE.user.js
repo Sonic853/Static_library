@@ -66,6 +66,7 @@
 // @match      https://bkimg.cdn.bcebos.com/*
 // @match      https://*/wp-content/uploads/*/*
 // @match      http://*/wp-content/uploads/*/*
+// @match      https://*.126.net
 // @copyright  https://blog.853lab.com/
 // @license    MIT
 // @namespace  http://853lab.com/
@@ -940,6 +941,7 @@
         document.location = m[1] + m[3]
       }
     }),
+    // https://*.126.net
   ]
   for (const cfg of cfgs) {
     if ((m = url.match(cfg.match))) {
