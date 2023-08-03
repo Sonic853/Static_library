@@ -941,7 +941,13 @@
         document.location = m[1] + m[3]
       }
     }),
-    // https://*.126.net
+    // https://p1.music.126.net/FeuE7WOAOGV61z7KtN8CsQ==/109951168561941429.jpg?param=200y200
+    // https://p1.music.126.net/FeuE7WOAOGV61z7KtN8CsQ==/109951168561941429.jpg
+    new CFG("music.163", /^(https?:\/\/p\d+\.music\.126\.net\/.+\/\d+\.jpg)(\?.+)?$/i, m => {
+      if (m[1]) {
+        document.location = m[1]
+      }
+    })
   ]
   for (const cfg of cfgs) {
     if ((m = url.match(cfg.match))) {
