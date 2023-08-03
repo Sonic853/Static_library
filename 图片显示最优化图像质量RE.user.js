@@ -758,14 +758,14 @@
           url: `${m[1]}maxresdefault${m[3]}`,
           method: "HEAD",
           onreadystatechange: function (xhr) {
-            if (xhr.readyState == 4) {
-              if (xhr.status == 200) {
-                document.location = `${m[1]}maxresdefault${m[3]}`
-              } else if (xhr.status == 404) {
+            if (xhr.readyState !== 4) return
+            if (xhr.status !== 200) {
+              if (xhr.status !== 404) {
                 if (m[5] || m[2] === "mqdefault")
                   document.location = `${m[1]}hqdefault${m[3]}`
               }
             }
+            document.location = `${m[1]}maxresdefault${m[3]}`
           }
         })
       }
@@ -782,11 +782,8 @@
           url: `${m[1]}1280${m[3]}`,
           method: "HEAD",
           onreadystatechange: function (xhr) {
-            if (xhr.readyState == 4) {
-              if (xhr.status == 200) {
-                document.location = `${m[1]}1280${m[3]}`
-              }
-            }
+            if (xhr.readyState !== 4 || xhr.status !== 200) return
+            document.location = `${m[1]}1280${m[3]}`
           }
         })
       }
@@ -837,15 +834,15 @@
           url: `${m[1]}original${m[3]}`,
           method: "HEAD",
           onreadystatechange: function (xhr) {
-            if (xhr.readyState == 4) {
-              if (xhr.status == 200) {
-                document.location = `${m[1]}original${m[4]}`
-              } else if (xhr.status == 404) {
+            if (xhr.readyState !== 4) return
+            if (xhr.status !== 200) {
+              if (xhr.status == 404) {
                 if (m[3] != "large") {
                   document.location = `${m[1]}large${m[4]}`
                 }
               }
             }
+            document.location = `${m[1]}original${m[4]}`
           }
         })
       }
@@ -857,15 +854,15 @@
           url: `${m[1]}original${m[3]}`,
           method: "HEAD",
           onreadystatechange: function (xhr) {
-            if (xhr.readyState == 4) {
-              if (xhr.status == 200) {
-                document.location = `${m[1]}original${m[3]}`
-              } else if (xhr.status == 404) {
+            if (xhr.readyState !== 4) return
+            if (xhr.status !== 200) {
+              if (xhr.status == 404) {
                 if (m[3] != "large") {
                   document.location = `${m[1]}large${m[3]}`
                 }
               }
             }
+            document.location = `${m[1]}original${m[3]}`
           }
         })
       }
@@ -918,13 +915,10 @@
         url: `https://imgsrc.baidu.com/forum/pic/item/${m[1]}.png`,
         method: "GET",
         onreadystatechange: function (xhr) {
-          if (xhr.readyState == 4) {
-            if (xhr.status == 200) {
-              if ((xhr.response.length !== 0 && xhr.response.length !== 4144 && xhr.response.length !== 4145) || confirm("图片有可能不存在，是否跳转到原图？")) {
-                document.location = `https://imgsrc.baidu.com/forum/pic/item/${m[1]}.png`
-              }
-            }
-          }
+          if ((xhr.readyState !== 4 && xhr.status !== 200)
+            || ((xhr.response.length === 0 || xhr.response.length === 4144 || xhr.response.length === 4145) && !confirm("图片有可能不存在，是否跳转到原图？"))
+          ) return
+          document.location = `https://imgsrc.baidu.com/forum/pic/item/${m[1]}.png`
         }
       })
     }),
@@ -950,11 +944,10 @@
     })
   ]
   for (const cfg of cfgs) {
-    if ((m = url.match(cfg.match))) {
-      if (cfg.run) {
-        cfg.run(m)
-      }
-      break
+    if (!(m = url.match(cfg.match)) || !cfg.run) {
+      continue
     }
+    cfg.run(m)
+    break
   }
 })()
