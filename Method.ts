@@ -31,7 +31,7 @@ export const dateFormat = (fmt: string, date?: Date | undefined) => {
   return fmt
 }
 export const isValidKey = (key: string, obj: object): key is keyof typeof obj => {
-  return obj.hasOwnProperty(key)
+  return Object.prototype.hasOwnProperty.call(obj, key)
 }
 export const stringIsNullOrEmpty = (value: string | null | undefined): value is null => {
   return value === null || value === undefined || value === ""
